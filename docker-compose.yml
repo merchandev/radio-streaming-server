@@ -1,6 +1,6 @@
 services:
   icecast:
-    image: infiniteproject/icecast-kh
+    image: moul/icecast
     container_name: icecast
     restart: always
     environment:
