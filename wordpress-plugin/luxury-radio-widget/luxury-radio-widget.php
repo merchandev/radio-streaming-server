@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Luxury Radio Glass Widget
-Description: Widget de Radio Premium con diseño Luxury Glass (V7). Usa el shortcode [luxury_radio] para mostrarlo.
-Version: 7.0
+Description: Widget de Radio Premium con diseño Luxury Glass (V8 - SSL Native). Usa el shortcode [luxury_radio] para mostrarlo.
+Version: 8.0
 Author: Antigravity
 */
 

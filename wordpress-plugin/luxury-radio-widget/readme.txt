@@ -3,7 +3,7 @@ Contributors: Antigravity
 Tags: radio, streaming, widget, luxury, glassmorphism
 Requires at least: 5.0
 Tested up to: 6.7
-Stable tag: 7.0
+Stable tag: 8.0
 License: GPLv2 or later
 
 A premium "Luxury Glass" radio player widget with animated backgrounds, visualizer, and robust error handling.
@@ -12,8 +12,8 @@ A premium "Luxury Glass" radio player widget with animated backgrounds, visualiz
 
 This plugin adds a beautiful, modern radio player to your WordPress site.
 It features:
-*   **Design V7 Ultra Luxury:** Glassmorphism effects, animated "Aurora" background.
-*   **Robust Playback:** Handles mixed content errors gracefully with user guidance.
+*   **Design V8 Ultra Luxury:** Glassmorphism effects, animated "Aurora" background.
+*   **Native SSL Support:** Streams directly securely via HTTPS without mixed content errors.
 *   **Visualizer:** A fake equalizer providing visual feedback.
 *   **Shortcode:** Simply use `[luxury_radio]` to embed it anywhere.
 
@@ -26,7 +26,7 @@ It features:
 == Frequently Asked Questions ==
 
 = Does it work with HTTPS? =
-Yes. If the stream is HTTP, the widget guides the user to unblock the content securely.
+Yes. It is fully compatible with SSL/HTTPS environments.
 
 = Can I change the stream URL? =
 Currently, the URL is hardcoded for maximum stability with the specific server setup.
