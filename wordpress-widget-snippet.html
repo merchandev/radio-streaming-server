@@ -1,4 +1,4 @@
-<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V5 - ANTI-ABORT & SECURE) -->
+<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V6 - FINAL PRODUCTION) -->
 <!-- Copia y pega TODO este bloque en un widget 'HTML Personalizado' de WordPress -->
 
 <div class="wp-radio-widget-luxury">
@@ -50,8 +50,8 @@
         <!-- Mensaje de Error (Instructivo) -->
         <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
             <div class="error-msg-text" style="font-size:12px; margin-bottom:8px; line-height:1.4;">
-                ⚠️ <strong>No se escucha?</strong><br>
-                Dale permiso en el 🔒 candado o 🛡️ escudo de la barra de direcciones.
+                ⚠️ <strong>Bloqueo Detectado</strong><br>
+                Dale permiso en el 🔒 candado de la barra de direcciones.
             </div>
             <button id="retry-action-btn" class="retry-btn">
                 🔄 INTENTAR DE NUEVO
@@ -365,8 +365,9 @@
         var eqInterval;
         var connTimeout;
 
-        // Play Lock para evitar carrera de eventos (race conditions)
+        // Lock de Play y de Error para evitar flooding (spam de consola)
         var playLock = false;
+        var errorLock = false;
 
         // Volumen inicial
         audio.volume = 1.0;
@@ -396,14 +397,14 @@
         }
 
         function playStream() {
-            if (playLock) return; // Evitar clicks dobles rápidos
-
+            if (playLock) return;
             if (isPlaying) {
                 stopStream();
                 return;
             }
 
             playLock = true;
+            errorLock = false; // Resetear el lock de error para una nueva prueba
 
             // Reset UI
             errorBox.style.display = 'none';
@@ -413,7 +414,7 @@
             var finalUrl = streamBase + '?t=' + Date.now();
             audio.src = finalUrl;
 
-            // Timeout de seguridad aumentado
+            // Timeout 
             clearTimeout(connTimeout);
             connTimeout = setTimeout(function () {
                 if (isLoading && !isPlaying) {
@@ -425,25 +426,19 @@
 
             if (playPromise !== undefined) {
                 playPromise.then(function () {
-                    // Promesa resuelta, esperando evento 'playing' real
                     setTimeout(function () { playLock = false; }, 500);
                 }).catch(function (error) {
-                    console.error("Play error:", error);
-                    playLock = false; // Liberar lock
+                    // Silenciar logs de consola para evitar spam
+                    playLock = false;
 
-                    // Ignorar AbortError (usuario pausó rápido o cambio de fuente)
-                    if (error.name === 'AbortError') {
-                        // No hacemos nada, es benigno
-                        return;
-                    }
+                    // Ignorar Abort completamente
+                    if (error.name === 'AbortError') return;
 
                     // Errores reales
                     if (error.message && error.message.includes('HTTPS')) {
                         handleError('Navegador bloqueó el audio. Click en el escudo/candado.');
                     } else if (error.name === 'NotAllowedError') {
                         handleError('Autoplay bloqueado. Haz click de nuevo.');
-                    } else if (error.name === 'NotSupportedError') {
-                        handleError('Formato no soportado o Stream Offline.');
                     } else {
                         handleError('Error de conexión.');
                     }
@@ -456,7 +451,7 @@
             playLock = true;
 
             audio.pause();
-            audio.src = ''; // Detener descarga
+            audio.src = '';
             isPlaying = false;
             isLoading = false;
             clearTimeout(connTimeout);
@@ -466,8 +461,13 @@
         }
 
         function handleError(msg) {
-            // No detener stream completamente para permitir reintentos suaves
-            // Pero sí resetear estado visual
+            if (errorLock) return; // Ya reportamos un error en este intento
+            errorLock = true;
+
+            // Limpieza total
+            audio.pause();
+            audio.src = ''; // MATAR la conexión para que el browser deje de reintentar
+
             isPlaying = false;
             isLoading = false;
             clearTimeout(connTimeout);
@@ -478,11 +478,10 @@
             errorMsgText.innerHTML = msg || 'Error de conexión';
             retryBtn.onclick = function () {
                 errorBox.style.display = 'none';
-                playStream();
+                playStream(); // Intento limpio nuevo
             };
         }
 
-        // Ecualizador
         function startEq() {
             stopEq();
             eqInterval = setInterval(function () {
@@ -498,7 +497,6 @@
 
         playBtn.addEventListener('click', playStream);
 
-        // Eventos de Audio HTML5
         audio.addEventListener('playing', function () {
             clearTimeout(connTimeout);
             playLock = false;
@@ -506,17 +504,14 @@
             isLoading = false;
             setVisualState('playing');
             errorBox.style.display = 'none';
+            errorLock = false;
         });
 
-        // Manejo robusto de errores de audio
+        // ERROR HANDLER SILENCIOSO Y UNICO
         audio.addEventListener('error', function (e) {
-            console.log('Audio element error:', e);
-
-            // Si el error ocurre muy rápido, es bloqueo
-            if (isLoading) {
-                handleError('⚠️ Bloqueo de seguridad. <br>Habilita "Contenido Inseguro" en el candado.');
-            } else {
-                handleError('Señal perdida.');
+            // No hacer console.log para evitar la foto de spam
+            if (isLoading && !errorLock) {
+                handleError('⚠️ No pudimos conectar. <br>Revisa el 🔒 candado de seguridad.');
             }
         });
 
