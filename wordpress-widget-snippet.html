@@ -1,4 +1,4 @@
-<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V4 - INLINE PURO) -->
+<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V5 - ANTI-ABORT & SECURE) -->
 <!-- Copia y pega TODO este bloque en un widget 'HTML Personalizado' de WordPress -->
 
 <div class="wp-radio-widget-luxury">
@@ -47,14 +47,14 @@
             </div>
         </div>
 
-        <!-- Mensaje de Error (Sin Popup) -->
+        <!-- Mensaje de Error (Instructivo) -->
         <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
             <div class="error-msg-text" style="font-size:12px; margin-bottom:8px; line-height:1.4;">
-                ⚠️ <strong>Conexión Interrumpida</strong><br>
-                Verifica el candado/escudo de seguridad en tu navegador.
+                ⚠️ <strong>No se escucha?</strong><br>
+                Dale permiso en el 🔒 candado o 🛡️ escudo de la barra de direcciones.
             </div>
             <button id="retry-action-btn" class="retry-btn">
-                🔄 REINTENTAR
+                🔄 INTENTAR DE NUEVO
             </button>
         </div>
     </div>
@@ -365,6 +365,9 @@
         var eqInterval;
         var connTimeout;
 
+        // Play Lock para evitar carrera de eventos (race conditions)
+        var playLock = false;
+
         // Volumen inicial
         audio.volume = 1.0;
 
@@ -393,10 +396,14 @@
         }
 
         function playStream() {
+            if (playLock) return; // Evitar clicks dobles rápidos
+
             if (isPlaying) {
                 stopStream();
                 return;
             }
+
+            playLock = true;
 
             // Reset UI
             errorBox.style.display = 'none';
@@ -406,51 +413,73 @@
             var finalUrl = streamBase + '?t=' + Date.now();
             audio.src = finalUrl;
 
-            // Timeout
+            // Timeout de seguridad aumentado
             clearTimeout(connTimeout);
             connTimeout = setTimeout(function () {
                 if (isLoading && !isPlaying) {
-                    handleError('Tiempo de espera agotado');
+                    handleError('Tiempo de espera agotado. Verifica tu conexión.');
                 }
-            }, 8000);
+            }, 12000);
 
             var playPromise = audio.play();
 
             if (playPromise !== undefined) {
                 playPromise.then(function () {
-                    // Éxito inicial
+                    // Promesa resuelta, esperando evento 'playing' real
+                    setTimeout(function () { playLock = false; }, 500);
                 }).catch(function (error) {
                     console.error("Play error:", error);
+                    playLock = false; // Liberar lock
 
-                    // Intentamos fallar "suavemente" sin popup
+                    // Ignorar AbortError (usuario pausó rápido o cambio de fuente)
+                    if (error.name === 'AbortError') {
+                        // No hacemos nada, es benigno
+                        return;
+                    }
+
+                    // Errores reales
                     if (error.message && error.message.includes('HTTPS')) {
-                        handleError('Navegador ha bloqueado el audio por HTTPS Mixto. Haz click en el candado/escudo.');
+                        handleError('Navegador bloqueó el audio. Click en el escudo/candado.');
+                    } else if (error.name === 'NotAllowedError') {
+                        handleError('Autoplay bloqueado. Haz click de nuevo.');
+                    } else if (error.name === 'NotSupportedError') {
+                        handleError('Formato no soportado o Stream Offline.');
                     } else {
-                        handleError('No se pudo conectar (Error de Red)');
+                        handleError('Error de conexión.');
                     }
                 });
             }
         }
 
         function stopStream() {
+            if (playLock) return;
+            playLock = true;
+
             audio.pause();
-            audio.src = '';
+            audio.src = ''; // Detener descarga
             isPlaying = false;
             isLoading = false;
             clearTimeout(connTimeout);
             setVisualState('idle');
+
+            setTimeout(function () { playLock = false; }, 500);
         }
 
         function handleError(msg) {
-            stopStream();
+            // No detener stream completamente para permitir reintentos suaves
+            // Pero sí resetear estado visual
+            isPlaying = false;
+            isLoading = false;
+            clearTimeout(connTimeout);
+            setVisualState('idle');
+            playLock = false;
+
             errorBox.style.display = 'block';
-
-            // Mensaje genérico de reintento
-            errorMsgText.textContent = msg || 'Error de conexión';
-            retryBtn.textContent = '🔄 REINTENTAR';
-
-            // Asignamos la acción de Reintentar SIEMPRE
-            retryBtn.onclick = playStream;
+            errorMsgText.innerHTML = msg || 'Error de conexión';
+            retryBtn.onclick = function () {
+                errorBox.style.display = 'none';
+                playStream();
+            };
         }
 
         // Ecualizador
@@ -468,18 +497,27 @@
         }
 
         playBtn.addEventListener('click', playStream);
-        retryBtn.onclick = playStream; // Default
 
+        // Eventos de Audio HTML5
         audio.addEventListener('playing', function () {
             clearTimeout(connTimeout);
+            playLock = false;
             isPlaying = true;
             isLoading = false;
             setVisualState('playing');
             errorBox.style.display = 'none';
         });
 
+        // Manejo robusto de errores de audio
         audio.addEventListener('error', function (e) {
-            handleError('Error de señal');
+            console.log('Audio element error:', e);
+
+            // Si el error ocurre muy rápido, es bloqueo
+            if (isLoading) {
+                handleError('⚠️ Bloqueo de seguridad. <br>Habilita "Contenido Inseguro" en el candado.');
+            } else {
+                handleError('Señal perdida.');
+            }
         });
 
     })();
