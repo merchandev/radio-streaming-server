@@ -44,10 +44,10 @@ CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 KEY_PATH="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
 # Backup del config original
-cp config/nginx.conf config/nginx.conf.bak
+cp config/radio_nginx.conf config/radio_nginx.conf.bak
 
 # Crear nueva configuración con SSL
-cat > config/nginx.conf <<EOF
+cat > config/radio_nginx.conf <<EOF
 user nginx;
 worker_processes auto;
 error_log /var/log/nginx/error.log warn;
