@@ -1,88 +1,50 @@
-# 📱 Integración en WordPress - Radio Player
+# 📱 Integración en WordPress - Radio Luxury Glass (V6)
 
-Aquí tienes el código optimizado para que el reproductor inicie **DE INMEDIATO** y en el mismo widget.
+Esta es la versión definitiva y más robusta del reproductor. Diseñada para funcionar en WordPress, incluso con problemas de "Contenido Mixto" (HTTPS/HTTP).
 
 ---
 
-## Opción Recomendada: Iframe Optimizado 🚀
+## 💎 Opción 1 (Recomendada): Widget "Luxury Glass" V6
 
-Esta opción carga el reproductor desde tu servidor. Es la más rápida y limpia.
+Este widget es autocontenido, estéticamente premium y maneja errores de forma inteligente.
 
-### Código para copiar:
+### Características V6:
+*   ✅ **Diseño Luxury**: Cristal esmerilado, animaciones y ecualizador.
+*   ✅ **Anti-Spam de Consola**: No llena el navegador de errores rojos.
+*   ✅ **Guía de Seguridad**: Detecta si el navegador bloquea el audio y le dice al usuario qué hacer (clic en el candado).
+*   ✅ **Auto-Limpieza**: Detiene conexiones fallidas inmediatamente.
+
+### Instrucciones de Instalación:
+
+1.  En tu WordPress, ve a **Apariencia > Widgets** o edita la página con Gutenberg/Elementor.
+2.  Añade un bloque **"HTML Personalizado"**.
+3.  Copia y pega **TODO** el contenido del archivo `wordpress-widget-snippet.html` que está en este repositorio.
+4.  Guarda los cambios.
+
+---
+
+## ⚠️ Nota sobre Seguridad (HTTPS)
+
+Tu página web es **HTTPS** (Segura 🔒) y la radio transmite en **HTTP** (Estándar).
+
+Por defecto, los navegadores (Chrome, Edge, Safari) bloquean el audio para "protegerte". Esto **no es un error del widget**, es una norma de internet.
+
+**Para que suene:**
+El usuario debe hacer clic en el **candado 🔒** o **escudo 🛡️** de la barra de direcciones y permitir el **"Contenido Inseguro"** para tu sitio web. El Widget V6 detecta esto y se lo recuerda al usuario amablemente si falla la conexión.
+
+---
+
+## Opción 2: Iframe (Alternativa)
+
+Si prefieres usar un iframe simple (menos control sobre errores):
 
 ```html
 <iframe src="http://72.62.86.94/embed.html" 
         width="100%" 
-        height="500" 
+        height="550" 
         frameborder="0" 
         scrolling="no" 
         allow="autoplay; encrypted-media"
-        style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: transparent;">
+        style="border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); background: transparent;">
 </iframe>
 ```
-
-**Instrucciones:**
-1. Añade un bloque **"HTML Personalizado"** en WordPress.
-2. Pega el código.
-3. Guarda y publica.
-
-> [!NOTE]
-> **Autoplay**: Los navegadores modernos bloquean el sonido automático hasta que el usuario hace clic. El usuario deberá hacer clic en Play la primera vez.
-
----
-
-## Opción 2: Código Directo (Sin Iframe)
-
-Si prefieres pegar todo el código directo en tu página:
-
-```html
-<div style="font-family: system-ui, sans-serif; background: #fff; padding: 15px 25px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 20px; max-width: 450px; margin: 0 auto; border: 1px solid #eee;">
-    <button id="wp-play-btn" style="width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);">▶</button>
-    <div style="flex-grow: 1;">
-        <div style="font-weight: 700; color: #333;">Radio En Vivo</div>
-        <div id="wp-status" style="font-size: 12px; color: #666;">Click para escuchar</div>
-    </div>
-</div>
-
-<audio id="wp-audio" preload="auto"></audio>
-
-<script>
-(function() {
-    var a = document.getElementById('wp-audio');
-    var b = document.getElementById('wp-play-btn');
-    var s = document.getElementById('wp-status');
-    var playing = false;
-    
-    // URL directa para máxima velocidad
-    var url = 'http://72.62.86.94/radio.aac';
-
-    b.addEventListener('click', function() {
-        if(playing) {
-            a.pause();
-            playing = false;
-            b.innerHTML = '▶';
-            s.textContent = 'Pausado';
-            a.src = ''; // Detener carga
-        } else {
-            b.innerHTML = '⏳';
-            s.textContent = 'Conectando...';
-            a.src = url;
-            a.play().then(() => {
-                playing = true;
-                b.innerHTML = '⏸';
-                s.textContent = 'En Vivo • ON AIR';
-            }).catch((e) => {
-                console.error(e);
-                s.textContent = 'Error: Verifica HTTPS mixtos';
-                b.innerHTML = '▶';
-            });
-        }
-    });
-})();
-</script>
-```
-
-**Instrucciones:**
-1. Añade un bloque **"HTML Personalizado"** en WordPress.
-2. Pega TODO el código.
-3. Publica. Funcionará inmediatamente (siempre que tu radio esté transmitiendo).
