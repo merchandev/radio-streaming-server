@@ -1,28 +1,19 @@
-FROM alpine:latest
+FROM alpine:3.18
 
-# Install icecast and curl for healthchecks
-# mailcap is needed for mime types
-RUN apk add --no-cache icecast curl mailcap
+# Install icecast and mailcap
+RUN apk add --no-cache icecast mailcap
 
-# Create necessary directories and set permissions
+# Create dirs
 RUN mkdir -p /var/log/icecast && \
+    chown -R icecast:icecast /var/log/icecast && \
     mkdir -p /usr/share/icecast/web && \
-    mkdir -p /usr/share/icecast/admin && \
-    chown -R icecast:icecast /var/log/icecast /usr/share/icecast
+    mkdir -p /usr/share/icecast/admin
 
-# Copy configuration
+# Copy config
 COPY config/icecast.xml /etc/icecast.xml
 RUN chown icecast:icecast /etc/icecast.xml
 
-# Switch to icecast user for security
 USER icecast
+EXPOSE 8000
 
-# Expose ports
-EXPOSE 8080 8000
-
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8080/status.xsl || exit 1
-
-# Start Icecast
 CMD ["icecast", "-c", "/etc/icecast.xml"]

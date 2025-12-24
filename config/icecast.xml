@@ -23,12 +23,7 @@
 
     <hostname>radio-server</hostname>
 
-    <!-- Primary port for streaming -->
-    <listen-socket>
-        <port>8080</port>
-    </listen-socket>
-
-    <!-- Backup/legacy port -->
+    <!-- Standard port -->
     <listen-socket>
         <port>8000</port>
     </listen-socket>
