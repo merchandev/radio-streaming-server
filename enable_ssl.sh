@@ -20,14 +20,15 @@ fi
 
 echo ""
 echo ">>> Paso 1: Verificando entorno Docker..."
-docker-compose down
-docker-compose up -d nginx
+docker compose down
+docker compose up -d nginx
 
 echo ""
 echo ">>> Paso 2: Solicitando Certificado SSL para $DOMAIN..."
 echo "    (Esto puede tardar unos segundos)"
 
-docker-compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot -d "$DOMAIN" --email admin@"$DOMAIN" --agree-tos --no-eff-email
+docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot -d "$DOMAIN" --email admin@"$DOMAIN" --agree-tos --no-eff-email
+
 
 if [ $? -ne 0 ]; then
     echo "❌ Error: Falló la obtención del certificado."
@@ -165,7 +166,7 @@ echo ">>> Paso 4: Aplicando configuración al contenedor..."
 docker cp config/radio_nginx.conf radio-streaming-server-nginx-1:/etc/nginx/nginx.conf
 
 # Reiniciamos
-docker-compose restart nginx
+docker compose restart nginx
 
 echo ""
 echo "✅ ¡ÉXITO! SSL Habilitado."
