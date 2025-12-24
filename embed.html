@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Player Embed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: transparent;
+            /* Transparent for embedding */
+            overflow: hidden;
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            gap: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .play-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .title {
+            font-weight: 700;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ccc;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .live-dot.active {
+            background-color: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .live-dot.error {
+            background-color: #f44336;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="range"] {
+            width: 80px;
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #9c27b0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .player-card {
+                padding: 12px 15px;
+                border-radius: 12px;
+            }
+
+            .volume-container {
+                display: none;
+            }
+
+            /* Hide volume on small screens */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="player-card">
+        <button class="play-btn" id="playBtn">
+            <span id="playIcon">▶</span>
+            <span id="pauseIcon" style="display:none;">⏸</span>
+            <span id="loadIcon" style="display:none;">⏳</span>
+        </button>
+
+        <div class="info">
+            <div class="title">Radio En Vivo</div>
+            <div class="status">
+                <span class="live-dot" id="liveDot"></span>
+                <span id="statusText">Offline</span>
+            </div>
+        </div>
+
+        <div class="volume-container">
+            <span>🔊</span>
+            <input type="range" min="0" max="100" value="80" id="volSlider">
+        </div>
+    </div>
+
+    <audio id="audio" preload="none" crossorigin="anonymous"></audio>
+
+    <script>
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('playBtn');
+        const statusText = document.getElementById('statusText');
+        const liveDot = document.getElementById('liveDot');
+
+        // Configuration
+        const STREAMS = ['/radio.aac', '/stream.aac', 'http://72.62.86.94/radio.aac']; // Fallbacks
+        let currentStreamIdx = 0;
+        let isPlaying = false;
+        let retryCount = 0;
+
+        // Init Volume
+        audio.volume = 0.8;
+        document.getElementById('volSlider').addEventListener('input', (e) => audio.volume = e.target.value / 100);
+
+        function setState(state) {
+            document.getElementById('playIcon').style.display = state === 'idle' ? 'block' : 'none';
+            document.getElementById('pauseIcon').style.display = state === 'playing' ? 'block' : 'none';
+            document.getElementById('loadIcon').style.display = state === 'loading' ? 'block' : 'none';
+
+            if (state === 'playing') {
+                liveDot.className = 'live-dot active';
+                statusText.textContent = 'En Vivo • ON AIR';
+            } else if (state === 'loading') {
+                liveDot.className = 'live-dot';
+                statusText.textContent = 'Conectando...';
+            } else if (state === 'error') {
+                liveDot.className = 'live-dot error';
+                statusText.textContent = 'Reconectando...';
+            } else {
+                liveDot.className = 'live-dot';
+                statusText.textContent = 'Click para escuchar';
+            }
+        }
+
+        async function play() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                setState('idle');
+                audio.src = ''; // Stop buffering
+                return;
+            }
+
+            setState('loading');
+            audio.src = STREAMS[currentStreamIdx];
+
+            try {
+                await audio.play();
+                isPlaying = true;
+                retryCount = 0;
+                setState('playing');
+            } catch (err) {
+                console.error("Play error:", err);
+                handleError();
+            }
+        }
+
+        function handleError() {
+            setState('error');
+            isPlaying = false;
+
+            // Try next stream or retry same
+            setTimeout(() => {
+                if (retryCount < 10) {
+                    retryCount++;
+                    // Rotate stream url
+                    currentStreamIdx = (currentStreamIdx + 1) % STREAMS.length;
+                    play(); // Auto retry
+                } else {
+                    statusText.textContent = "Offline (Verifica fuente)";
+                    setState('idle');
+                    retryCount = 0;
+                }
+            }, 3000);
+        }
+
+        playBtn.addEventListener('click', play);
+
+        audio.addEventListener('playing', () => setState('playing'));
+        audio.addEventListener('error', handleError);
+
+        // Initial state
+        setState('idle');
+    </script>
+</body>
+
+</html>
