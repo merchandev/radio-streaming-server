@@ -159,7 +159,12 @@ http {
 EOF
 
 echo ""
-echo ">>> Paso 4: Reiniciando servicios..."
+echo ">>> Paso 4: Aplicando configuración al contenedor..."
+
+# Como quitamos el volumen por errores de despliegue, copiamos el archivo manual
+docker cp config/radio_nginx.conf radio-streaming-server-nginx-1:/etc/nginx/nginx.conf
+
+# Reiniciamos
 docker-compose restart nginx
 
 echo ""
