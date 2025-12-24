@@ -1,0 +1,7 @@
+FROM moul/icecast
+
+# Copy custom configuration
+COPY config/icecast.xml /etc/icecast.xml
+
+# Expose Icecast port
+EXPOSE 8000
