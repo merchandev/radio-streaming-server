@@ -22,13 +22,8 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     restart: always
-    volumes:
-      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
     ports:
       - "80:80"
-      - "443:443"
     depends_on:
       - icecast
     healthcheck:
@@ -41,10 +36,3 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 6h & wait $${!}; certbot renew; done;'"
