@@ -391,7 +391,7 @@ function luxury_radio_shortcode() {
             }
 
             // Configuración
-            var streamBase = 'http://72.62.86.94/radio.aac';
+            var streamBase = 'https://tv.monagasvision.com/radio.aac';
             var isPlaying = false;
             var isLoading = false;
             var eqInterval;
