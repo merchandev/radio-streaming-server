@@ -1,9 +1,9 @@
 <icecast>
-    <location>Earth</location>
-    <admin>admin@localhost</admin>
+    <location>Internet</location>
+    <admin>admin@radio-server.com</admin>
 
     <limits>
-        <clients>2000</clients>
+        <clients>5000</clients>
         <sources>10</sources>
         <threadpool>5</threadpool>
         <queue-size>524288</queue-size>
@@ -11,18 +11,24 @@
         <header-timeout>15</header-timeout>
         <source-timeout>10</source-timeout>
         <burst-on-connect>1</burst-on-connect>
-        <burst-size>65535</burst-size>
+        <burst-size>131072</burst-size>
     </limits>
 
     <authentication>
-        <source-password>mistream</source-password>
-        <relay-password>hackme</relay-password>
+        <source-password>radiostream2024</source-password>
+        <relay-password>relay2024secure</relay-password>
         <admin-user>admin</admin-user>
-        <admin-password>hackme</admin-password>
+        <admin-password>admin2024secure</admin-password>
     </authentication>
 
-    <hostname>localhost</hostname>
+    <hostname>radio-server</hostname>
 
+    <!-- Primary port for streaming -->
+    <listen-socket>
+        <port>8080</port>
+    </listen-socket>
+
+    <!-- Backup/legacy port -->
     <listen-socket>
         <port>8000</port>
     </listen-socket>
@@ -34,17 +40,24 @@
         <logdir>/usr/share/icecast/log</logdir>
         <webroot>/usr/share/icecast/web</webroot>
         <adminroot>/usr/share/icecast/admin</adminroot>
-        <alias source="/" destination="/index.html"/>
+        <alias source="/" destination="/status.xsl"/>
     </paths>
 
     <logging>
         <accesslog>access.log</accesslog>
         <errorlog>error.log</errorlog>
         <loglevel>3</loglevel> <!-- 4 Debug, 3 Info, 2 Warn, 1 Error -->
-        <logsize>10000</logsize> <!-- Max size of a logfile -->
+        <logsize>10000</logsize>
     </logging>
 
     <security>
         <chroot>0</chroot>
     </security>
+
+    <!-- Performance tuning -->
+    <http-headers>
+        <header name="Access-Control-Allow-Origin" value="*" />
+        <header name="Access-Control-Allow-Methods" value="GET, POST, OPTIONS" />
+        <header name="Access-Control-Allow-Headers" value="Origin, Accept, Content-Type, X-Requested-With" />
+    </http-headers>
 </icecast>

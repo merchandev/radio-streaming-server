@@ -1,7 +1,14 @@
 FROM moul/icecast
 
-# Copy custom configuration
+# Install curl for healthchecks
+RUN apk add --no-cache curl
+
+# Copy optimized configuration
 COPY config/icecast.xml /etc/icecast.xml
 
-# Expose Icecast port
-EXPOSE 8000
+# Expose both ports
+EXPOSE 8080 8000
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8080/status.xsl || exit 1
