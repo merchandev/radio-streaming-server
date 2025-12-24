@@ -1,4 +1,4 @@
-<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V2 - ROBUSTO) -->
+<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V3 - FINAL) -->
 <!-- Copia y pega TODO este bloque en un widget 'HTML Personalizado' de WordPress -->
 
 <div class="wp-radio-widget-luxury">
@@ -47,11 +47,14 @@
             </div>
         </div>
 
-        <!-- Mensaje de Error -->
+        <!-- Mensaje de Error / Fallback HTTPS -->
         <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
-            <div class="error-msg-text" style="font-size:12px; margin-bottom:8px;">⚠️ Error de conexión</div>
+            <div class="error-msg-text" style="font-size:12px; margin-bottom:8px; line-height:1.4;">
+                ⚠️ <strong>Bloqueo de Seguridad Detectado</strong><br>
+                Tu navegador requiere una ventana segura.
+            </div>
             <button id="retry-action-btn" class="retry-btn">
-                REINTENTAR AHORA
+                🔓 ABRIR EN VENTANA SEGURA
             </button>
         </div>
     </div>
@@ -134,7 +137,6 @@
         opacity: 0;
     }
 
-    /* Pulsación al reproducir */
     .glass-btn-pulse {
         position: absolute;
         width: 100%;
@@ -285,7 +287,7 @@
 
     /* Error Box */
     .glass-error-message {
-        background: rgba(255, 71, 87, 0.15);
+        background: rgba(100, 0, 0, 0.4);
         border: 1px solid #ff4757;
         border-radius: 12px;
         padding: 15px;
@@ -293,6 +295,7 @@
         text-align: center;
         width: 100%;
         box-sizing: border-box;
+        animation: fadeIn 0.3s;
     }
 
     .retry-btn {
@@ -307,10 +310,24 @@
         margin-top: 5px;
         width: 100%;
         transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
     }
 
     .retry-btn:hover {
         transform: scale(1.02);
+        background: #ff6b81;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     /* Loading */
@@ -348,7 +365,10 @@
         var eqInterval;
         var connTimeout;
 
-        // Volumen inicial alto para asegurar que se oiga
+        // DETECCIÓN DE HTTPS (CRÍTICO)
+        var isHttps = window.location.protocol === 'https:';
+
+        // Volumen inicial
         audio.volume = 1.0;
 
         document.getElementById('wp-radio-volume-control').addEventListener('input', function (e) {
@@ -375,6 +395,11 @@
             }
         }
 
+        function openPopup() {
+            // Abrir en ventana simple y segura
+            window.open('http://72.62.86.94/embed.html', 'RadioPlayer', 'width=380,height=550,toolbar=no,menubar=no,scrollbars=no,resizable=no');
+        }
+
         function playStream() {
             if (isPlaying) {
                 stopStream();
@@ -386,33 +411,36 @@
             setVisualState('loading');
             isLoading = true;
 
-            // Cache busting con timestamp para evitar caché agresivo
+            // Si estamos en HTTPS, el navegador bloqueará HTTP http://... 
+            // Intentamos igual, pero preparamos el fallback inmediato.
             var finalUrl = streamBase + '?t=' + Date.now();
             audio.src = finalUrl;
 
-            // Timeout de seguridad: Si en 10s no suena, mostrar error
+            // Timeout
             clearTimeout(connTimeout);
             connTimeout = setTimeout(function () {
                 if (isLoading && !isPlaying) {
-                    handleError('Tiempo de espera agotado');
+                    // Si tarda mucho, probablemente está bloqueado silenciosamente
+                    handleError(isHttps ? 'Bloqueo Seguridad HTTPS' : 'Tiempo de espera agotado');
                 }
-            }, 10000);
+            }, 8000); // 8 segundos timeout
 
             var playPromise = audio.play();
 
             if (playPromise !== undefined) {
                 playPromise.then(function () {
-                    // El navegador aceptó el intent de play
-                    // Esperamos al evento 'playing' real
+                    // Éxito inicial
                 }).catch(function (error) {
-                    console.error("Play rejected:", error);
+                    console.error("Play error:", error);
 
-                    if (error.name === 'NotAllowedError') {
-                        handleError('Navegador bloqueó el autostart');
-                    } else if (error.message && error.message.includes('HTTPS')) {
-                        handleError('Error HTTPS mixtos');
+                    // Análisis de Errores
+                    if (error.message && error.message.includes('HTTPS')) {
+                        handleError('Bloqueo HTTPS Detectado');
+                    } else if (error.name === 'NotSupportedError' || error.name === 'NotAllowedError') {
+                        // Casi siempre bloqueo de navegador o codec
+                        handleError('La reproducción requiere permiso externo');
                     } else {
-                        handleError('Error: ' + error.name);
+                        handleError('No se pudo conectar');
                     }
                 });
             }
@@ -430,21 +458,22 @@
         function handleError(msg) {
             stopStream();
             errorBox.style.display = 'block';
-            errorMsgText.textContent = msg || 'No se pudo conectar';
 
-            // Si es error de Mixed Content, sugerir abrir fuera
-            if (msg && msg.includes('HTTPS')) {
-                retryBtn.textContent = 'ABRIR EN VENTANA EXTERNA';
-                retryBtn.onclick = function () {
-                    window.open('http://72.62.86.94/embed.html', 'RadioPlayer', 'width=380,height=550');
-                };
+            // Lógica de Fallback Inteligente
+            if (isHttps || (msg && msg.includes('HTTPS')) || (msg && msg.includes('Bloqueo'))) {
+                // Modo Seguro
+                errorMsgText.innerHTML = '🔒 <strong>Seguridad del Navegador</strong><br>Para escuchar aqui, abre la ventana segura.';
+                retryBtn.textContent = 'ABRIR REPRODUCTOR EXTERNO';
+                retryBtn.onclick = openPopup;
             } else {
+                // Error Normal
+                errorMsgText.textContent = msg || 'Error de conexión';
                 retryBtn.textContent = 'REINTENTAR';
                 retryBtn.onclick = playStream;
             }
         }
 
-        // Ecualizador Fake
+        // Ecualizador
         function startEq() {
             stopEq();
             eqInterval = setInterval(function () {
@@ -459,22 +488,18 @@
         }
 
         playBtn.addEventListener('click', playStream);
+        retryBtn.onclick = playStream; // Default
 
-        // Eventos de Audio HTML5
         audio.addEventListener('playing', function () {
             clearTimeout(connTimeout);
             isPlaying = true;
             isLoading = false;
             setVisualState('playing');
+            errorBox.style.display = 'none';
         });
 
         audio.addEventListener('error', function (e) {
-            console.error("Audio error:", e);
-            handleError('Error en la señal');
-        });
-
-        audio.addEventListener('waiting', function () {
-            if (isPlaying) setVisualState('loading');
+            handleError('Error de señal');
         });
 
     })();
