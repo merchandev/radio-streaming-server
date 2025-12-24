@@ -1,4 +1,4 @@
-<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS -->
+<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V2 - ROBUSTO) -->
 <!-- Copia y pega TODO este bloque en un widget 'HTML Personalizado' de WordPress -->
 
 <div class="wp-radio-widget-luxury">
@@ -18,7 +18,7 @@
                 <div class="live-dot"></div>
                 RADIO EN VIVO
             </div>
-            <div id="wp-radio-status-text" class="glass-status-text">Listo para conectar</div>
+            <div id="wp-radio-status-text" class="glass-status-text">Click para conectar</div>
             <div class="glass-station-info">
                 <svg class="wave-icon" viewBox="0 0 24 24">
                     <path
@@ -43,16 +43,15 @@
                     <path
                         d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
                 </svg>
-                <input type="range" id="wp-radio-volume-control" min="0" max="1" step="0.01" value="0.8">
+                <input type="range" id="wp-radio-volume-control" min="0" max="1" step="0.01" value="1.0">
             </div>
         </div>
 
-        <!-- Mensaje de Error Inteligente -->
+        <!-- Mensaje de Error -->
         <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
-            <div style="font-size:12px; margin-bottom:8px;">⚠️ Tu navegador bloqueó el audio</div>
-            <button onclick="window.open('http://72.62.86.94/embed.html','Radioplayer','width=380,height=550')"
-                class="retry-btn">
-                🔓 ABRIR REPRODUCTOR EXTERNO
+            <div class="error-msg-text" style="font-size:12px; margin-bottom:8px;">⚠️ Error de conexión</div>
+            <button id="retry-action-btn" class="retry-btn">
+                REINTENTAR AHORA
             </button>
         </div>
     </div>
@@ -64,7 +63,7 @@
     /* ESTILOS LUXURY GLASS */
     .wp-radio-widget-luxury {
         font-family: system-ui, -apple-system, sans-serif;
-        width: 300px;
+        width: 320px;
         max-width: 100%;
         margin: 20px auto;
         background: radial-gradient(circle at top right, #1a1a2e, #16213e);
@@ -135,6 +134,37 @@
         opacity: 0;
     }
 
+    /* Pulsación al reproducir */
+    .glass-btn-pulse {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
+        animation: none;
+    }
+
+    .playing .glass-btn-pulse {
+        animation: pulse-ring 2s infinite;
+    }
+
+    @keyframes pulse-ring {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
+        }
+
+        70% {
+            transform: scale(1.3);
+            box-shadow: 0 0 0 15px rgba(233, 30, 99, 0);
+        }
+
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+        }
+    }
+
     /* Info */
     .glass-info-panel {
         text-align: center;
@@ -176,6 +206,7 @@
         font-size: 13px;
         color: rgba(255, 255, 255, 0.7);
         min-height: 20px;
+        font-weight: 500;
     }
 
     .glass-station-info {
@@ -224,7 +255,7 @@
         gap: 10px;
         width: 80%;
         background: rgba(0, 0, 0, 0.2);
-        padding: 5px 10px;
+        padding: 8px 12px;
         border-radius: 20px;
     }
 
@@ -244,11 +275,12 @@
 
     input[type=range]::-webkit-slider-thumb {
         -webkit-appearance: none;
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         background: white;
         border-radius: 50%;
         cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     /* Error Box */
@@ -267,13 +299,18 @@
         background: #ff4757;
         color: white;
         border: none;
-        padding: 8px 15px;
-        border-radius: 20px;
+        padding: 10px 15px;
+        border-radius: 30px;
         font-size: 12px;
         font-weight: bold;
         cursor: pointer;
         margin-top: 5px;
         width: 100%;
+        transition: transform 0.2s;
+    }
+
+    .retry-btn:hover {
+        transform: scale(1.02);
     }
 
     /* Loading */
@@ -300,17 +337,20 @@
         var status = document.getElementById('wp-radio-status-text');
         var panel = document.getElementById('mainPanel');
         var errorBox = document.getElementById('wp-radio-error-message');
+        var errorMsgText = document.querySelector('.error-msg-text');
+        var retryBtn = document.getElementById('retry-action-btn');
         var bars = document.querySelectorAll('.viz-bar');
 
         // Configuración
-        var streamUrl = 'http://72.62.86.94/radio.aac';
+        var streamBase = 'http://72.62.86.94/radio.aac';
         var isPlaying = false;
         var isLoading = false;
         var eqInterval;
-        var playLock = false; // Evita clics dobles rápidos
+        var connTimeout;
 
-        // Volumen inicial
-        audio.volume = 0.8;
+        // Volumen inicial alto para asegurar que se oiga
+        audio.volume = 1.0;
+
         document.getElementById('wp-radio-volume-control').addEventListener('input', function (e) {
             audio.volume = e.target.value;
         });
@@ -318,12 +358,12 @@
         function setVisualState(state) {
             if (state === 'playing') {
                 panel.classList.add('playing');
-                status.textContent = 'Transmisión En Vivo';
+                status.textContent = 'EN VIVO • Sonando';
                 status.style.color = '#2ed573';
-                playBtn.innerHTML = '<svg class="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                playBtn.innerHTML = '<svg class="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><div class="glass-btn-pulse"></div>';
                 startEq();
             } else if (state === 'loading') {
-                status.textContent = 'Conectando seña...';
+                status.textContent = 'Conectando...';
                 status.style.color = '#ffa502';
                 playBtn.innerHTML = '<div class="loading-spinner"></div>';
             } else {
@@ -335,51 +375,72 @@
             }
         }
 
-        function togglePlay() {
-            if (playLock) return;
-            playLock = true;
-
-            // Timeout para liberar el lock
-            setTimeout(function () { playLock = false; }, 500);
-
+        function playStream() {
             if (isPlaying) {
-                audio.pause();
-                audio.src = '';
-                isPlaying = false;
-                setVisualState('idle');
-            } else {
-                errorBox.style.display = 'none';
-                setVisualState('loading');
-                isLoading = true;
+                stopStream();
+                return;
+            }
 
-                audio.src = streamUrl;
-                var playPromise = audio.play();
+            // Reset UI
+            errorBox.style.display = 'none';
+            setVisualState('loading');
+            isLoading = true;
 
-                if (playPromise !== undefined) {
-                    playPromise.then(function () {
-                        isPlaying = true;
-                        isLoading = false;
-                        setVisualState('playing');
-                    }).catch(function (error) {
-                        console.log(error);
-                        isLoading = false;
-                        isPlaying = false;
-                        setVisualState('idle');
+            // Cache busting con timestamp para evitar caché agresivo
+            var finalUrl = streamBase + '?t=' + Date.now();
+            audio.src = finalUrl;
 
-                        // Detectar bloqueos de seguridad
-                        if (error.name === 'NotAllowedError' || error.message.includes('HTTPS')) {
-                            errorBox.style.display = 'block';
-                            status.textContent = 'Bloqueado por navegador';
-                            status.style.color = '#ff4757';
-                        } else if (error.name === 'AbortError') {
-                            // Ignorar AbortError (usuario clicó rápido)
-                        } else {
-                            status.textContent = 'Error de conexión';
-                            // Reintentar en 3s
-                            setTimeout(function () { if (!isPlaying) togglePlay(); }, 3000);
-                        }
-                    });
+            // Timeout de seguridad: Si en 10s no suena, mostrar error
+            clearTimeout(connTimeout);
+            connTimeout = setTimeout(function () {
+                if (isLoading && !isPlaying) {
+                    handleError('Tiempo de espera agotado');
                 }
+            }, 10000);
+
+            var playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(function () {
+                    // El navegador aceptó el intent de play
+                    // Esperamos al evento 'playing' real
+                }).catch(function (error) {
+                    console.error("Play rejected:", error);
+
+                    if (error.name === 'NotAllowedError') {
+                        handleError('Navegador bloqueó el autostart');
+                    } else if (error.message && error.message.includes('HTTPS')) {
+                        handleError('Error HTTPS mixtos');
+                    } else {
+                        handleError('Error: ' + error.name);
+                    }
+                });
+            }
+        }
+
+        function stopStream() {
+            audio.pause();
+            audio.src = '';
+            isPlaying = false;
+            isLoading = false;
+            clearTimeout(connTimeout);
+            setVisualState('idle');
+        }
+
+        function handleError(msg) {
+            stopStream();
+            errorBox.style.display = 'block';
+            errorMsgText.textContent = msg || 'No se pudo conectar';
+
+            // Si es error de Mixed Content, sugerir abrir fuera
+            if (msg && msg.includes('HTTPS')) {
+                retryBtn.textContent = 'ABRIR EN VENTANA EXTERNA';
+                retryBtn.onclick = function () {
+                    window.open('http://72.62.86.94/embed.html', 'RadioPlayer', 'width=380,height=550');
+                };
+            } else {
+                retryBtn.textContent = 'REINTENTAR';
+                retryBtn.onclick = playStream;
             }
         }
 
@@ -397,15 +458,23 @@
             bars.forEach(function (bar) { bar.style.height = '5px'; });
         }
 
-        playBtn.addEventListener('click', togglePlay);
+        playBtn.addEventListener('click', playStream);
 
-        // Manejo de errores nativos
-        audio.addEventListener('error', function () {
-            if (isPlaying) {
-                togglePlay(); // Reset
-                status.textContent = 'Reconectando...';
-                setTimeout(togglePlay, 2000);
-            }
+        // Eventos de Audio HTML5
+        audio.addEventListener('playing', function () {
+            clearTimeout(connTimeout);
+            isPlaying = true;
+            isLoading = false;
+            setVisualState('playing');
+        });
+
+        audio.addEventListener('error', function (e) {
+            console.error("Audio error:", e);
+            handleError('Error en la señal');
+        });
+
+        audio.addEventListener('waiting', function () {
+            if (isPlaying) setVisualState('loading');
         });
 
     })();
