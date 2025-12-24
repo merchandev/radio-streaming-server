@@ -1,4 +1,4 @@
-<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V3 - FINAL) -->
+<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V4 - INLINE PURO) -->
 <!-- Copia y pega TODO este bloque en un widget 'HTML Personalizado' de WordPress -->
 
 <div class="wp-radio-widget-luxury">
@@ -47,14 +47,14 @@
             </div>
         </div>
 
-        <!-- Mensaje de Error / Fallback HTTPS -->
+        <!-- Mensaje de Error (Sin Popup) -->
         <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
             <div class="error-msg-text" style="font-size:12px; margin-bottom:8px; line-height:1.4;">
-                ⚠️ <strong>Bloqueo de Seguridad Detectado</strong><br>
-                Tu navegador requiere una ventana segura.
+                ⚠️ <strong>Conexión Interrumpida</strong><br>
+                Verifica el candado/escudo de seguridad en tu navegador.
             </div>
             <button id="retry-action-btn" class="retry-btn">
-                🔓 ABRIR EN VENTANA SEGURA
+                🔄 REINTENTAR
             </button>
         </div>
     </div>
@@ -365,9 +365,6 @@
         var eqInterval;
         var connTimeout;
 
-        // DETECCIÓN DE HTTPS (CRÍTICO)
-        var isHttps = window.location.protocol === 'https:';
-
         // Volumen inicial
         audio.volume = 1.0;
 
@@ -395,11 +392,6 @@
             }
         }
 
-        function openPopup() {
-            // Abrir en ventana simple y segura
-            window.open('http://72.62.86.94/embed.html', 'RadioPlayer', 'width=380,height=550,toolbar=no,menubar=no,scrollbars=no,resizable=no');
-        }
-
         function playStream() {
             if (isPlaying) {
                 stopStream();
@@ -411,8 +403,6 @@
             setVisualState('loading');
             isLoading = true;
 
-            // Si estamos en HTTPS, el navegador bloqueará HTTP http://... 
-            // Intentamos igual, pero preparamos el fallback inmediato.
             var finalUrl = streamBase + '?t=' + Date.now();
             audio.src = finalUrl;
 
@@ -420,10 +410,9 @@
             clearTimeout(connTimeout);
             connTimeout = setTimeout(function () {
                 if (isLoading && !isPlaying) {
-                    // Si tarda mucho, probablemente está bloqueado silenciosamente
-                    handleError(isHttps ? 'Bloqueo Seguridad HTTPS' : 'Tiempo de espera agotado');
+                    handleError('Tiempo de espera agotado');
                 }
-            }, 8000); // 8 segundos timeout
+            }, 8000);
 
             var playPromise = audio.play();
 
@@ -433,14 +422,11 @@
                 }).catch(function (error) {
                     console.error("Play error:", error);
 
-                    // Análisis de Errores
+                    // Intentamos fallar "suavemente" sin popup
                     if (error.message && error.message.includes('HTTPS')) {
-                        handleError('Bloqueo HTTPS Detectado');
-                    } else if (error.name === 'NotSupportedError' || error.name === 'NotAllowedError') {
-                        // Casi siempre bloqueo de navegador o codec
-                        handleError('La reproducción requiere permiso externo');
+                        handleError('Navegador ha bloqueado el audio por HTTPS Mixto. Haz click en el candado/escudo.');
                     } else {
-                        handleError('No se pudo conectar');
+                        handleError('No se pudo conectar (Error de Red)');
                     }
                 });
             }
@@ -459,18 +445,12 @@
             stopStream();
             errorBox.style.display = 'block';
 
-            // Lógica de Fallback Inteligente
-            if (isHttps || (msg && msg.includes('HTTPS')) || (msg && msg.includes('Bloqueo'))) {
-                // Modo Seguro
-                errorMsgText.innerHTML = '🔒 <strong>Seguridad del Navegador</strong><br>Para escuchar aqui, abre la ventana segura.';
-                retryBtn.textContent = 'ABRIR REPRODUCTOR EXTERNO';
-                retryBtn.onclick = openPopup;
-            } else {
-                // Error Normal
-                errorMsgText.textContent = msg || 'Error de conexión';
-                retryBtn.textContent = 'REINTENTAR';
-                retryBtn.onclick = playStream;
-            }
+            // Mensaje genérico de reintento
+            errorMsgText.textContent = msg || 'Error de conexión';
+            retryBtn.textContent = '🔄 REINTENTAR';
+
+            // Asignamos la acción de Reintentar SIEMPRE
+            retryBtn.onclick = playStream;
         }
 
         // Ecualizador
