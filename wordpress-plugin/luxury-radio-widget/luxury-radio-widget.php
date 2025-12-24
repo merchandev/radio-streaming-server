@@ -11,14 +11,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function luxury_radio_shortcode() {
+    // Generar ID único desde PHP para robustez total
+    $widget_id = 'luxury-radio-' . uniqid();
+    
     ob_start();
     ?>
     <!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V7 - ULTRA) -->
-    <div class="wp-radio-widget-luxury">
+    <div id="<?php echo esc_attr($widget_id); ?>" class="wp-radio-widget-luxury">
         <!-- Fondo Animado -->
         <div class="luxury-bg-anim"></div>
-        <div class="radio-glass-panel" id="mainPanel">
-            <button id="wp-radio-play-btn" class="glass-btn-play" type="button">
+        <div class="radio-glass-panel" id="mainPanel-<?php echo $widget_id; ?>">
+            <button id="btn-<?php echo $widget_id; ?>" class="glass-btn-play" type="button">
                 <svg class="play-icon" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                 </svg>
@@ -32,7 +35,7 @@ function luxury_radio_shortcode() {
                     <div class="live-dot"></div>
                     RADIO EN VIVO
                 </div>
-                <div id="wp-radio-status-text" class="glass-status-text">Click para conectar</div>
+                <div id="status-<?php echo $widget_id; ?>" class="glass-status-text">Click para conectar</div>
                 <div class="glass-station-info">
                     <svg class="wave-icon" viewBox="0 0 24 24">
                         <path
@@ -55,22 +58,22 @@ function luxury_radio_shortcode() {
                         <path
                             d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
                     </svg>
-                    <input type="range" id="wp-radio-volume-control" min="0" max="1" step="0.01" value="1.0">
+                    <input type="range" id="vol-<?php echo $widget_id; ?>" min="0" max="1" step="0.01" value="1.0">
                 </div>
             </div>
             <!-- Mensaje de Error (Discreto y Elegante) -->
-            <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
+            <div id="err-<?php echo $widget_id; ?>" class="glass-error-message" style="display:none;">
                 <div class="error-msg-text" style="font-size:12px; margin-bottom:10px; line-height:1.4;">
                     <span style="font-size: 18px;">🔒</span><br>
                     <strong>Acceso Bloqueado</strong><br>
-                    <span style="opacity: 0.8;">Habilita el contenido inseguro en la barra de direcciones.</span>
+                    <span style="opacity: 0.8;">Tu navegador bloqueó el audio no seguro (HTTP).</span>
                 </div>
-                <button id="retry-action-btn" class="retry-btn">
-                    VERIFICAR Y REINTENTAR
+                <button id="retry-<?php echo $widget_id; ?>" class="retry-btn">
+                    DESBLOQUEAR Y OIR
                 </button>
             </div>
         </div>
-        <audio id="wp-radio-player" preload="none" crossorigin="anonymous"></audio>
+        <audio id="audio-<?php echo $widget_id; ?>" preload="none" crossorigin="anonymous"></audio>
     </div>
     <style>
         /* FUENTE: Intentamos usar una fuente moderna si está disponible */
@@ -367,23 +370,25 @@ function luxury_radio_shortcode() {
         }
     </style>
     <script>
-        (function () {
-            // Generar ID único por si hay múltiples widgets (buena práctica de plugin)
-            var widgetId = 'luxury_radio_' + Math.floor(Math.random() * 10000);
-            var scripts = document.currentScript;
-            var container = scripts.previousElementSibling ? scripts.previousElementSibling : scripts.parentElement.querySelector('.wp-radio-widget-luxury');
-            
-            // Si el script se ejecuta antes del DOM, esperamos
-            if (!container) return;
+        (function (uid) {
+            // Scope estrictamente al ID generado
+            var container = document.getElementById(uid);
+            if (!container) return; // Si no existe, salir sin error
 
-            var audio = container.querySelector('#wp-radio-player');
-            var playBtn = container.querySelector('#wp-radio-play-btn');
-            var status = container.querySelector('#wp-radio-status-text');
-            var panel = container.querySelector('#mainPanel');
-            var errorBox = container.querySelector('#wp-radio-error-message');
-            var retryBtn = container.querySelector('#retry-action-btn');
+            var audio = document.getElementById('audio-' + uid);
+            var playBtn = document.getElementById('btn-' + uid);
+            var status = document.getElementById('status-' + uid);
+            var panel = document.getElementById('mainPanel-' + uid);
+            var errorBox = document.getElementById('err-' + uid);
+            var retryBtn = document.getElementById('retry-' + uid);
+            var volControl = document.getElementById('vol-' + uid);
             var bars = container.querySelectorAll('.viz-bar');
-            var volControl = container.querySelector('#wp-radio-volume-control');
+
+            // Seguridad extra: verificar que todos los elementos existan
+            if (!audio || !playBtn || !volControl) {
+                console.error('Luxury Radio: Elementos del DOM no encontrados para ' + uid);
+                return;
+            }
 
             // Configuración
             var streamBase = 'http://72.62.86.94/radio.aac';
@@ -391,15 +396,16 @@ function luxury_radio_shortcode() {
             var isLoading = false;
             var eqInterval;
             var connTimeout;
-            // Locks
-            var playLock = false;
-            var errorLock = false;
-            // Volumen inicial
+            var playLock = false; // Flag para prevenir race conditions
+
+            // Volumen init
             audio.volume = 1.0;
-            
+            volControl.value = 1.0;
+
             volControl.addEventListener('input', function (e) {
-                audio.volume = e.target.value;
+                if(audio) audio.volume = e.target.value;
             });
+
             function setVisualState(state) {
                 if (state === 'playing') {
                     panel.classList.add('playing');
@@ -423,87 +429,122 @@ function luxury_radio_shortcode() {
                     stopEq();
                 }
             }
+
             function playStream() {
-                if (playLock) return;
-                if (isPlaying) { stopStream(); return; }
+                if (playLock) return; // Evitar clicks multiples
+                
+                if (isPlaying) { 
+                    stopStream(); 
+                    return; 
+                }
+
                 playLock = true;
-                errorLock = false; // Reset lock de error
                 errorBox.style.display = 'none';
                 setVisualState('loading');
                 isLoading = true;
-                var finalUrl = streamBase + '?t=' + Date.now();
-                audio.src = finalUrl;
+
+                // Cache busting para nueva conexión
+                audio.src = streamBase + '?t=' + Date.now();
+                audio.load(); // Forzar carga
+
+                var playPromise = audio.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(function() {
+                       // Éxito
+                       setTimeout(function(){ playLock = false; }, 200);
+                    }).catch(function(error) {
+                        playLock = false;
+                        if (error.name === 'AbortError') {
+                            // Ignorar aborts (usuario pausó rápido, o tab en background)
+                            return; 
+                        }
+                        if (error.name === 'NotSupportedError' || error.name === 'NotAllowedError') {
+                            // Bloqueo de Autoplay o Mixed Content
+                            handleError();
+                        } else {
+                            handleError();
+                        }
+                    });
+                } else {
+                     playLock = false;
+                }
+
+                // Timeout de seguridad por si se queda "Conectando..." infinito
                 clearTimeout(connTimeout);
-                connTimeout = setTimeout(function () {
-                    if (isLoading && !isPlaying) {
+                connTimeout = setTimeout(function() {
+                    if(isLoading && !isPlaying) {
                         handleError();
                     }
-                }, 12000);
-                var playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(function () {
-                        setTimeout(function () { playLock = false; }, 500);
-                    }).catch(function (error) {
-                        playLock = false;
-                        if (error.name === 'AbortError') return;
-                        handleError();
-                    });
-                }
+                }, 10000);
             }
+
             function stopStream() {
-                if (playLock) return;
-                playLock = true;
+                playLock = true; // Bloqueo temporal
                 audio.pause();
-                audio.src = '';
+                audio.src = ''; // Cortar conexión
                 isPlaying = false;
                 isLoading = false;
                 clearTimeout(connTimeout);
                 setVisualState('idle');
-                setTimeout(function () { playLock = false; }, 500);
+                // Liberar lock rápido
+                setTimeout(function(){ playLock = false; }, 200);
             }
+
             function handleError() {
-                if (errorLock) return;
-                errorLock = true;
+                // Limpieza total
                 audio.pause();
-                audio.src = '';
+                audio.src = ''; 
                 isPlaying = false;
                 isLoading = false;
+                playLock = false;
                 clearTimeout(connTimeout);
                 setVisualState('idle');
-                playLock = false;
+
+                // Mostrar UI de ayuda
                 errorBox.style.display = 'block';
-                retryBtn.onclick = function () {
+                
+                // El botón de retry simplemente vuelve a intentar playStream
+                retryBtn.onclick = function() {
                     errorBox.style.display = 'none';
                     playStream();
                 };
             }
+
             function startEq() {
                 stopEq();
                 eqInterval = setInterval(function () {
                     bars.forEach(function (bar) {
-                        // Movimiento más orgánico
                         bar.style.height = (4 + Math.random() * 24) + 'px';
                     });
                 }, 80);
             }
+
             function stopEq() {
                 clearInterval(eqInterval);
                 bars.forEach(function (bar) { bar.style.height = '6px'; });
             }
+
+            // Event Listeners
             playBtn.addEventListener('click', playStream);
+            
             audio.addEventListener('playing', function () {
                 clearTimeout(connTimeout);
-                playLock = false;
                 isPlaying = true;
                 isLoading = false;
+                playLock = false;
                 setVisualState('playing');
                 errorBox.style.display = 'none';
-                errorLock = false;
             });
+            
             audio.addEventListener('error', function (e) {
-                if (isLoading && !errorLock) handleError();
+                // Solo manejar error si estábamos intentando cargar
+                if (isLoading) {
+                    handleError();
+                }
             });
-        })();
+
+        })('<?php echo $widget_id; ?>');
     </script>
     <?php
     return ob_get_clean();
