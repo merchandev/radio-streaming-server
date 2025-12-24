@@ -1,17 +1,28 @@
-FROM moul/icecast
+FROM alpine:latest
 
-# Install curl for healthchecks using apt-get (Debian-based)
-RUN apt-get update && \
-    apt-get install -y curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install icecast and curl for healthchecks
+# mailcap is needed for mime types
+RUN apk add --no-cache icecast curl mailcap
 
-# Copy optimized configuration
+# Create necessary directories and set permissions
+RUN mkdir -p /var/log/icecast && \
+    mkdir -p /usr/share/icecast/web && \
+    mkdir -p /usr/share/icecast/admin && \
+    chown -R icecast:icecast /var/log/icecast /usr/share/icecast
+
+# Copy configuration
 COPY config/icecast.xml /etc/icecast.xml
+RUN chown icecast:icecast /etc/icecast.xml
 
-# Expose both ports
+# Switch to icecast user for security
+USER icecast
+
+# Expose ports
 EXPOSE 8080 8000
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8080/status.xsl || exit 1
+
+# Start Icecast
+CMD ["icecast", "-c", "/etc/icecast.xml"]
