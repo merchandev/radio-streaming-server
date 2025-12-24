@@ -1,563 +1,555 @@
-<!DOCTYPE html>
-<html lang="es">
+<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V7 - ULTRA) -->
+<!-- Copia y pega TODO este bloque en un widget 'HTML Personalizado' de WordPress -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radio Player Premium</title>
-    <style>
-        /* Variables de color y estilo */
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --glass-shadow: rgba(0, 0, 0, 0.2);
-            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --accent-color: #667eea;
-            --accent-secondary: #764ba2;
-            --text-primary: rgba(30, 30, 30, 0.95);
-            /* Darker text for white backgrounds if needed, but looks like dark mode design */
-            --text-secondary: rgba(50, 50, 50, 0.7);
-            --text-tertiary: rgba(80, 80, 80, 0.5);
-            --error-color: #ff4757;
-            --success-color: #2ed573;
-            --warning-color: #ffa502;
-        }
+<div class="wp-radio-widget-luxury">
+    <!-- Fondo Animado -->
+    <div class="luxury-bg-anim"></div>
 
-        /* Adjust colors for transparent background assuming dark or light context, 
-           but glassmorphism usually implies a dark or colorful background. 
-           Since this is an embed, we'll set a default body background so it looks good isolated, 
-           or keep transparent. If the user wants "Luxury", usually implies dark/glass. 
-           Let's use the styles provided but ensure visibility. */
+    <div class="radio-glass-panel" id="mainPanel">
+        <button id="wp-radio-play-btn" class="glass-btn-play" type="button">
+            <svg class="play-icon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+            </svg>
+            <svg class="pause-icon" viewBox="0 0 24 24">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+            <div class="glass-btn-pulse"></div>
+        </button>
 
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: transparent;
-            /* Allow iframe to blend */
-            overflow: hidden;
-        }
-
-        /* If body is transparent, text needs to be readable. 
-           The provided CSS uses white text variables, which implies a dark background.
-           We'll add a style to the container to ensure contrast if placed on white wordpress. */
-
-        .wp-radio-widget-luxury {
-            width: 320px;
-            max-width: 100%;
-            margin: 0 auto;
-            /* Force dark styling context for the glass effect to pop */
-            background: radial-gradient(circle at top right, #1a1a2e, #16213e);
-            border-radius: 20px;
-            padding: 20px;
-            /* Padding for the container itself */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Overwrite specific variable colors for the dark container context */
-        .wp-radio-widget-luxury {
-            --text-primary: rgba(255, 255, 255, 0.95);
-            --text-secondary: rgba(255, 255, 255, 0.7);
-            --text-tertiary: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Widget container inner */
-        .radio-glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            /* Slightly more transparent */
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-radius: 18px;
-            padding: 22px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .radio-glass-panel::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        /* Play button */
-        .glass-btn-play {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: var(--accent-gradient);
-            border: none;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            z-index: 1;
-            outline: none;
-        }
-
-        .glass-btn-play:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-        }
-
-        .glass-btn-play:active {
-            transform: scale(0.95);
-        }
-
-        .glass-btn-play svg {
-            width: 28px;
-            height: 28px;
-            fill: white;
-            position: absolute;
-            transition: opacity 0.3s;
-        }
-
-        .pause-icon {
-            opacity: 0;
-        }
-
-        .play-icon {
-            opacity: 1;
-        }
-
-        /* States */
-        .playing .pause-icon {
-            opacity: 1;
-        }
-
-        .playing .play-icon {
-            opacity: 0;
-        }
-
-        /* Pulse animation for playing state */
-        .glass-btn-pulse {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-            opacity: 0;
-            z-index: -1;
-        }
-
-        .playing .glass-btn-pulse {
-            animation: pulse-ring 2s infinite;
-        }
-
-        @keyframes pulse-ring {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-            }
-
-            70% {
-                transform: scale(1.5);
-                box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
-            }
-
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
-            }
-        }
-
-        /* Info Panel */
-        .glass-info-panel {
-            text-align: center;
-            width: 100%;
-            margin-bottom: 15px;
-            z-index: 1;
-        }
-
-        .glass-station-title {
-            color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--error-color);
-            /* Red for live */
-            box-shadow: 0 0 5px var(--error-color);
-        }
-
-        .playing .live-dot {
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .glass-status-text {
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 5px;
-            min-height: 20px;
-        }
-
-        .glass-station-info {
-            color: var(--text-tertiary);
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        /* Equalizer */
-        .glass-equalizer-viz {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            height: 30px;
-            gap: 4px;
-            margin-bottom: 20px;
-            width: 100%;
-            z-index: 1;
-        }
-
-        .viz-bar {
-            width: 6px;
-            height: 6px;
-            background: linear-gradient(to top, var(--accent-color), var(--accent-secondary));
-            border-radius: 3px;
-            transition: height 0.1s ease;
-            opacity: 0.5;
-        }
-
-        .playing .viz-bar {
-            opacity: 1;
-        }
-
-        /* Controls */
-        .glass-controls-panel {
-            width: 100%;
-            z-index: 1;
-        }
-
-        .volume-control-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .volume-icon {
-            width: 20px;
-            height: 20px;
-            fill: var(--text-secondary);
-        }
-
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 70%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            outline: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .connection-info {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 11px;
-            color: var(--text-tertiary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .connection-info svg {
-            width: 12px;
-            height: 12px;
-            fill: currentColor;
-        }
-
-        /* Error Message */
-        .glass-error-message {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 71, 87, 0.15);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            border-radius: 10px;
-            color: var(--error-color);
-            font-size: 13px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 1;
-        }
-
-        .retry-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            cursor: pointer;
-            margin-left: auto;
-        }
-
-        /* Loader */
-        .loading-spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="wp-radio-widget-luxury">
-        <div class="radio-glass-panel" id="mainPanel">
-            <button id="wp-radio-play-btn" class="glass-btn-play">
-                <svg class="play-icon" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                </svg>
-                <svg class="pause-icon" viewBox="0 0 24 24">
-                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                </svg>
-                <div class="glass-btn-pulse"></div>
-                <!-- Loader injected via JS when loading -->
-            </button>
-
-            <div class="glass-info-panel">
-                <div class="glass-station-title">
-                    <div class="live-dot"></div>
-                    RADIO EN VIVO
-                </div>
-                <div id="wp-radio-status-text" class="glass-status-text">Listo para conectar</div>
-                <div class="glass-station-info">
-                    <svg class="wave-icon" viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;">
-                        <path
-                            d="M20 12c-1.5 0-2.5.5-3 1.5l-3 4.5c-.5 1-1.5 1.5-2.5 1.5s-2-.5-2.5-1.5L6 13.5C5.5 12.5 4.5 12 3 12" />
-                    </svg>
-                    <span>FM 103.5 • 128 kbps</span>
-                </div>
+        <div class="glass-info-panel">
+            <div class="glass-station-title">
+                <div class="live-dot"></div>
+                RADIO EN VIVO
             </div>
-
-            <div class="glass-equalizer-viz">
-                <div class="viz-bar"></div>
-                <div class="viz-bar"></div>
-                <div class="viz-bar"></div>
-                <div class="viz-bar"></div>
-                <div class="viz-bar"></div>
-                <div class="viz-bar"></div>
-            </div>
-
-            <div class="glass-controls-panel">
-                <div class="volume-control-wrapper">
-                    <svg class="volume-icon" viewBox="0 0 24 24">
-                        <path
-                            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                    </svg>
-                    <input type="range" id="wp-radio-volume-control" min="0" max="1" step="0.01" value="0.8">
-                </div>
-
-                <div class="connection-info">
-                    <svg class="signal-icon" viewBox="0 0 24 24">
-                        <path
-                            d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l10.08 12.56c.8 1 2.32 1 3.12 0L23.64 7z" />
-                    </svg>
-                    <span id="wp-radio-bitrate">--- kbps</span>
-                </div>
-            </div>
-
-            <div id="wp-radio-error-message" class="glass-error-message">
-                <svg class="error-icon" viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor">
+            <div id="wp-radio-status-text" class="glass-status-text">Click para conectar</div>
+            <div class="glass-station-info">
+                <svg class="wave-icon" viewBox="0 0 24 24">
                     <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                        d="M20 12c-1.5 0-2.5.5-3 1.5l-3 4.5c-.5 1-1.5 1.5-2.5 1.5s-2-.5-2.5-1.5L6 13.5C5.5 12.5 4.5 12 3 12" />
                 </svg>
-                <div class="error-text">Error</div>
-                <button id="wp-radio-retry-btn" class="retry-btn">Reintentar</button>
+                <span>FM 99.3 • Sonido HD</span>
             </div>
         </div>
 
-        <audio id="wp-radio-player" preload="auto" crossorigin="anonymous"></audio>
+        <div class="glass-equalizer-viz">
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+        </div>
+
+        <div class="glass-controls-panel">
+            <div class="volume-control-wrapper">
+                <svg class="volume-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                </svg>
+                <input type="range" id="wp-radio-volume-control" min="0" max="1" step="0.01" value="1.0">
+            </div>
+        </div>
+
+        <!-- Mensaje de Error (Discreto y Elegante) -->
+        <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
+            <div class="error-msg-text" style="font-size:12px; margin-bottom:10px; line-height:1.4;">
+                <span style="font-size: 18px;">🔒</span><br>
+                <strong>Acceso Bloqueado</strong><br>
+                <span style="opacity: 0.8;">Habilita el contenido inseguro en la barra de direcciones.</span>
+            </div>
+            <button id="retry-action-btn" class="retry-btn">
+                VERIFICAR Y REINTENTAR
+            </button>
+        </div>
     </div>
 
-    <script>
-        // Elements
-        const audio = document.getElementById('wp-radio-player');
-        const playBtn = document.getElementById('wp-radio-play-btn');
-        const panel = document.getElementById('mainPanel');
-        const statusText = document.getElementById('wp-radio-status-text');
-        const volumeSlider = document.getElementById('wp-radio-volume-control');
-        const errorBox = document.getElementById('wp-radio-error-message');
-        const retryBtn = document.getElementById('wp-radio-retry-btn');
-        const bars = document.querySelectorAll('.viz-bar');
-        const bitrateText = document.getElementById('wp-radio-bitrate');
+    <audio id="wp-radio-player" preload="none" crossorigin="anonymous"></audio>
+</div>
 
-        const STREAMS = [
-            'http://72.62.86.94/radio.aac',
-            '/radio.aac',
-            'http://72.62.86.94:8000/radio.aac'
-        ];
-        let currentStreamIdx = 0;
-        let isPlaying = false;
-        let eqInterval;
+<style>
+    /* FUENTE: Intentamos usar una fuente moderna si está disponible */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
 
-        audio.volume = 0.8;
+    /* ESTILOS LUXURY V7 */
+    .wp-radio-widget-luxury {
+        font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+        width: 340px;
+        max-width: 100%;
+        margin: 20px auto;
+        border-radius: 28px;
+        color: white;
+        padding: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        position: relative;
+        overflow: hidden;
+        background: #0f0c29;
+        /* Fallback */
+        z-index: 100;
+    }
 
-        function setStatus(state) {
+    /* Fondo Animado "Aurora" */
+    .luxury-bg-anim {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 50% 50%, #240b36, #0f0c29 60%, #000000);
+        animation: aurora 15s infinite linear;
+        z-index: 1;
+    }
+
+    @keyframes aurora {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .radio-glass-panel {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px) saturate(120%);
+        -webkit-backdrop-filter: blur(16px) saturate(120%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        border-radius: 22px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Botón Play Premium - Glossy */
+    .glass-btn-play {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff0055 0%, #7000cc 100%);
+        border: none;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+    }
+
+    .glass-btn-play:hover {
+        transform: scale(1.08);
+        box-shadow: 0 15px 40px rgba(255, 0, 85, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-btn-play:active {
+        transform: scale(0.95);
+    }
+
+    .glass-btn-play svg {
+        width: 32px;
+        height: 32px;
+        fill: white;
+        position: absolute;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+    }
+
+    .pause-icon {
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .playing .pause-icon {
+        opacity: 1;
+    }
+
+    .playing .play-icon {
+        opacity: 0;
+    }
+
+    .glass-btn-pulse {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.6);
+    }
+
+    .playing .glass-btn-pulse {
+        animation: pulse-ring 2s infinite;
+    }
+
+    @keyframes pulse-ring {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.6);
+        }
+
+        70% {
+            transform: scale(1.4);
+            box-shadow: 0 0 0 20px rgba(255, 0, 85, 0);
+        }
+
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 0, 85, 0);
+        }
+    }
+
+    /* Info */
+    .glass-info-panel {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .glass-station-title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #ff2d55;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #ff2d55;
+    }
+
+    .playing .live-dot {
+        animation: blink 1.5s infinite;
+        background: #00ff88;
+        box-shadow: 0 0 10px #00ff88;
+    }
+
+    @keyframes blink {
+        50% {
+            opacity: 0.4;
+        }
+    }
+
+    .glass-status-text {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+        min-height: 20px;
+        font-weight: 500;
+    }
+
+    .glass-station-info {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.4);
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .wave-icon {
+        width: 12px;
+        height: 12px;
+        fill: currentColor;
+    }
+
+    /* Ecualizador */
+    .glass-equalizer-viz {
+        display: flex;
+        gap: 5px;
+        height: 30px;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        opacity: 0.8;
+    }
+
+    .viz-bar {
+        width: 6px;
+        height: 4px;
+        background: linear-gradient(to top, #ff0055, #bf00ff);
+        border-radius: 3px;
+        transition: height 0.1s ease;
+    }
+
+    /* Volumen */
+    .glass-controls-panel {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .volume-control-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 90%;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px 16px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.2s;
+    }
+
+    .volume-control-wrapper:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .volume-icon {
+        width: 20px;
+        height: 20px;
+        fill: rgba(255, 255, 255, 0.8);
+    }
+
+    input[type=range] {
+        flex-grow: 1;
+        height: 5px;
+        -webkit-appearance: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+        outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        transition: transform 0.1s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+
+    /* Error Box */
+    .glass-error-message {
+        background: rgba(255, 59, 48, 0.15);
+        border: 1px solid rgba(255, 59, 48, 0.4);
+        border-radius: 16px;
+        padding: 16px;
+        margin-top: 15px;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        backdrop-filter: blur(5px);
+    }
+
+    .retry-btn {
+        background: #ff3b30;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        margin-top: 8px;
+        width: 100%;
+        transition: transform 0.2s, background 0.2s;
+        box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
+    }
+
+    .retry-btn:hover {
+        transform: translateY(-1px);
+        background: #ff5e55;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Loading */
+    .loading-spinner {
+        width: 26px;
+        height: 26px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        var audio = document.getElementById('wp-radio-player');
+        var playBtn = document.getElementById('wp-radio-play-btn');
+        var status = document.getElementById('wp-radio-status-text');
+        var panel = document.getElementById('mainPanel');
+        var errorBox = document.getElementById('wp-radio-error-message');
+        var retryBtn = document.getElementById('retry-action-btn');
+        var bars = document.querySelectorAll('.viz-bar');
+
+        // Configuración
+        var streamBase = 'http://72.62.86.94/radio.aac';
+        var isPlaying = false;
+        var isLoading = false;
+        var eqInterval;
+        var connTimeout;
+
+        // Locks
+        var playLock = false;
+        var errorLock = false;
+
+        // Volumen inicial
+        audio.volume = 1.0;
+
+        document.getElementById('wp-radio-volume-control').addEventListener('input', function (e) {
+            audio.volume = e.target.value;
+        });
+
+        function setVisualState(state) {
             if (state === 'playing') {
                 panel.classList.add('playing');
-                statusText.textContent = "Transmisión en Vivo";
-                statusText.style.color = "var(--success-color)";
+                status.textContent = 'EN VIVO • ON AIR';
+                status.style.color = '#00ff88';
+                status.style.fontWeight = '700';
+                status.style.textShadow = '0 0 10px rgba(0,255,136,0.3)';
+                playBtn.innerHTML = '<svg class="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><div class="glass-btn-pulse"></div>';
                 startEq();
-                playBtn.innerHTML = `<svg class="pause-icon" viewBox="0 0 24 24" style="opacity:1"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><div class="glass-btn-pulse"></div>`;
             } else if (state === 'loading') {
-                statusText.textContent = "Conectando...";
-                statusText.style.color = "var(--warning-color)";
-                playBtn.innerHTML = `<div class="loading-spinner"></div>`;
-            } else if (state === 'error') {
+                status.textContent = 'Conectando señal...';
+                status.style.color = '#ffd700';
+                status.style.textShadow = 'none';
+                playBtn.innerHTML = '<div class="loading-spinner"></div>';
+            } else {
                 panel.classList.remove('playing');
-                statusText.textContent = "Desconectado";
+                status.textContent = 'Click para Escuchar';
+                status.style.color = 'rgba(255,255,255,0.6)';
+                status.style.textShadow = 'none';
+                playBtn.innerHTML = '<svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
                 stopEq();
-                playBtn.innerHTML = `<svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
-            } else { // idle
-                panel.classList.remove('playing');
-                statusText.textContent = "Listo para conectar";
-                statusText.style.color = "var(--text-secondary)";
-                stopEq();
-                playBtn.innerHTML = `<svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
+        }
+
+        function playStream() {
+            if (playLock) return;
+            if (isPlaying) { stopStream(); return; }
+
+            playLock = true;
+            errorLock = false; // Reset lock de error
+
+            errorBox.style.display = 'none';
+            setVisualState('loading');
+            isLoading = true;
+
+            var finalUrl = streamBase + '?t=' + Date.now();
+            audio.src = finalUrl;
+
+            clearTimeout(connTimeout);
+            connTimeout = setTimeout(function () {
+                if (isLoading && !isPlaying) {
+                    handleError();
+                }
+            }, 12000);
+
+            var playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(function () {
+                    setTimeout(function () { playLock = false; }, 500);
+                }).catch(function (error) {
+                    playLock = false;
+                    if (error.name === 'AbortError') return;
+                    handleError();
+                });
+            }
+        }
+
+        function stopStream() {
+            if (playLock) return;
+            playLock = true;
+
+            audio.pause();
+            audio.src = '';
+            isPlaying = false;
+            isLoading = false;
+            clearTimeout(connTimeout);
+            setVisualState('idle');
+
+            setTimeout(function () { playLock = false; }, 500);
+        }
+
+        function handleError() {
+            if (errorLock) return;
+            errorLock = true;
+
+            audio.pause();
+            audio.src = '';
+            isPlaying = false;
+            isLoading = false;
+            clearTimeout(connTimeout);
+            setVisualState('idle');
+            playLock = false;
+
+            errorBox.style.display = 'block';
+            retryBtn.onclick = function () {
+                errorBox.style.display = 'none';
+                playStream();
+            };
         }
 
         function startEq() {
             stopEq();
-            eqInterval = setInterval(() => {
-                bars.forEach(bar => {
-                    bar.style.height = (5 + Math.random() * 25) + 'px';
+            eqInterval = setInterval(function () {
+                bars.forEach(function (bar) {
+                    // Movimiento más orgánico
+                    bar.style.height = (4 + Math.random() * 24) + 'px';
                 });
-                bitrateText.textContent = "128 kbps";
-            }, 100);
+            }, 80);
         }
-
         function stopEq() {
             clearInterval(eqInterval);
-            bars.forEach(bar => bar.style.height = '6px');
-            bitrateText.textContent = "--- kbps";
+            bars.forEach(function (bar) { bar.style.height = '6px'; });
         }
 
-        function showError(msg) {
-            errorBox.style.display = 'flex';
-            errorBox.querySelector('.error-text').textContent = msg;
-            setStatus('error');
-        }
+        playBtn.addEventListener('click', playStream);
 
-        function hideError() {
+        audio.addEventListener('playing', function () {
+            clearTimeout(connTimeout);
+            playLock = false;
+            isPlaying = true;
+            isLoading = false;
+            setVisualState('playing');
             errorBox.style.display = 'none';
-        }
-
-        async function togglePlay() {
-            if (isPlaying) {
-                audio.pause();
-                audio.src = ""; // Stop buffer
-                isPlaying = false;
-                setStatus('idle');
-            } else {
-                hideError();
-                setStatus('loading');
-                audio.src = STREAMS[currentStreamIdx];
-                try {
-                    await audio.play();
-                    isPlaying = true;
-                    setStatus('playing');
-                } catch (e) {
-                    console.error(e);
-                    showError("Error de conexión");
-                    // Try next stream
-                    currentStreamIdx = (currentStreamIdx + 1) % STREAMS.length;
-                }
-            }
-        }
-
-        playBtn.addEventListener('click', togglePlay);
-        retryBtn.addEventListener('click', togglePlay);
-
-        volumeSlider.addEventListener('input', (e) => {
-            audio.volume = e.target.value;
+            errorLock = false;
         });
 
-        audio.addEventListener('error', () => {
-            if (isPlaying) {
-                showError("Se perdió la señal");
-                isPlaying = false;
-            }
+        audio.addEventListener('error', function (e) {
+            if (isLoading && !errorLock) handleError();
         });
 
-        audio.addEventListener('playing', () => {
-            isPlaying = true; // Confirm play
-            setStatus('playing');
-        });
-
-    </script>
-</body>
-
-</html>
+    })();
+</script>

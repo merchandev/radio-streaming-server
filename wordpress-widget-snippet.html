@@ -1,7 +1,10 @@
-<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V6 - FINAL PRODUCTION) -->
+<!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V7 - ULTRA) -->
 <!-- Copia y pega TODO este bloque en un widget 'HTML Personalizado' de WordPress -->
 
 <div class="wp-radio-widget-luxury">
+    <!-- Fondo Animado -->
+    <div class="luxury-bg-anim"></div>
+
     <div class="radio-glass-panel" id="mainPanel">
         <button id="wp-radio-play-btn" class="glass-btn-play" type="button">
             <svg class="play-icon" viewBox="0 0 24 24">
@@ -24,7 +27,7 @@
                     <path
                         d="M20 12c-1.5 0-2.5.5-3 1.5l-3 4.5c-.5 1-1.5 1.5-2.5 1.5s-2-.5-2.5-1.5L6 13.5C5.5 12.5 4.5 12 3 12" />
                 </svg>
-                <span>FM 99.3 • 128 kbps</span>
+                <span>FM 99.3 • Sonido HD</span>
             </div>
         </div>
 
@@ -47,14 +50,15 @@
             </div>
         </div>
 
-        <!-- Mensaje de Error (Instructivo) -->
+        <!-- Mensaje de Error (Discreto y Elegante) -->
         <div id="wp-radio-error-message" class="glass-error-message" style="display:none;">
-            <div class="error-msg-text" style="font-size:12px; margin-bottom:8px; line-height:1.4;">
-                ⚠️ <strong>Bloqueo Detectado</strong><br>
-                Dale permiso en el 🔒 candado de la barra de direcciones.
+            <div class="error-msg-text" style="font-size:12px; margin-bottom:10px; line-height:1.4;">
+                <span style="font-size: 18px;">🔒</span><br>
+                <strong>Acceso Bloqueado</strong><br>
+                <span style="opacity: 0.8;">Habilita el contenido inseguro en la barra de direcciones.</span>
             </div>
             <button id="retry-action-btn" class="retry-btn">
-                🔄 INTENTAR DE NUEVO
+                VERIFICAR Y REINTENTAR
             </button>
         </div>
     </div>
@@ -63,54 +67,84 @@
 </div>
 
 <style>
-    /* ESTILOS LUXURY GLASS */
+    /* FUENTE: Intentamos usar una fuente moderna si está disponible */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+
+    /* ESTILOS LUXURY V7 */
     .wp-radio-widget-luxury {
-        font-family: system-ui, -apple-system, sans-serif;
-        width: 320px;
+        font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+        width: 340px;
         max-width: 100%;
         margin: 20px auto;
-        background: radial-gradient(circle at top right, #1a1a2e, #16213e);
-        border-radius: 24px;
+        border-radius: 28px;
         color: white;
-        padding: 20px;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        padding: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
         position: relative;
+        overflow: hidden;
+        background: #0f0c29;
+        /* Fallback */
         z-index: 100;
     }
 
+    /* Fondo Animado "Aurora" */
+    .luxury-bg-anim {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 50% 50%, #240b36, #0f0c29 60%, #000000);
+        animation: aurora 15s infinite linear;
+        z-index: 1;
+    }
+
+    @keyframes aurora {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
     .radio-glass-panel {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 18px;
-        padding: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px) saturate(120%);
+        -webkit-backdrop-filter: blur(16px) saturate(120%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        border-radius: 22px;
+        padding: 24px;
         display: flex;
         flex-direction: column;
         align-items: center;
         position: relative;
+        z-index: 2;
     }
 
-    /* Botón Play Premium */
+    /* Botón Play Premium - Glossy */
     .glass-btn-play {
-        width: 70px;
-        height: 70px;
+        width: 76px;
+        height: 76px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+        background: linear-gradient(135deg, #ff0055 0%, #7000cc 100%);
         border: none;
         color: white;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
-        transition: transform 0.2s;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         position: relative;
-        z-index: 10;
     }
 
     .glass-btn-play:hover {
-        transform: scale(1.05);
+        transform: scale(1.08);
+        box-shadow: 0 15px 40px rgba(255, 0, 85, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.4);
     }
 
     .glass-btn-play:active {
@@ -118,10 +152,11 @@
     }
 
     .glass-btn-play svg {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         fill: white;
         position: absolute;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
     }
 
     .pause-icon {
@@ -142,8 +177,7 @@
         width: 100%;
         height: 100%;
         border-radius: 50%;
-        box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
-        animation: none;
+        box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.6);
     }
 
     .playing .glass-btn-pulse {
@@ -153,17 +187,17 @@
     @keyframes pulse-ring {
         0% {
             transform: scale(0.95);
-            box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
+            box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.6);
         }
 
         70% {
-            transform: scale(1.3);
-            box-shadow: 0 0 0 15px rgba(233, 30, 99, 0);
+            transform: scale(1.4);
+            box-shadow: 0 0 0 20px rgba(255, 0, 85, 0);
         }
 
         100% {
             transform: scale(0.95);
-            box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+            box-shadow: 0 0 0 0 rgba(255, 0, 85, 0);
         }
     }
 
@@ -171,53 +205,58 @@
     .glass-info-panel {
         text-align: center;
         width: 100%;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
 
     .glass-station-title {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 700;
-        margin-bottom: 5px;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        color: rgba(255, 255, 255, 0.9);
     }
 
     .live-dot {
         width: 8px;
         height: 8px;
-        background: #e91e63;
+        background: #ff2d55;
         border-radius: 50%;
-        box-shadow: 0 0 10px #e91e63;
+        box-shadow: 0 0 10px #ff2d55;
     }
 
     .playing .live-dot {
-        animation: blink 2s infinite;
-        background: #2ed573;
-        box-shadow: 0 0 10px #2ed573;
+        animation: blink 1.5s infinite;
+        background: #00ff88;
+        box-shadow: 0 0 10px #00ff88;
     }
 
     @keyframes blink {
         50% {
-            opacity: 0.5;
+            opacity: 0.4;
         }
     }
 
     .glass-status-text {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255, 255, 255, 0.6);
         min-height: 20px;
         font-weight: 500;
     }
 
     .glass-station-info {
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.4);
         display: flex;
         justify-content: center;
-        gap: 5px;
-        margin-top: 5px;
+        gap: 6px;
+        margin-top: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .wave-icon {
@@ -229,19 +268,19 @@
     /* Ecualizador */
     .glass-equalizer-viz {
         display: flex;
-        gap: 4px;
-        height: 25px;
+        gap: 5px;
+        height: 30px;
         align-items: flex-end;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
+        opacity: 0.8;
     }
 
     .viz-bar {
-        width: 5px;
-        height: 5px;
-        background: linear-gradient(to top, #e91e63, #9c27b0);
-        border-radius: 2px;
-        opacity: 0.5;
-        transition: height 0.1s;
+        width: 6px;
+        height: 4px;
+        background: linear-gradient(to top, #ff0055, #bf00ff);
+        border-radius: 3px;
+        transition: height 0.1s ease;
     }
 
     /* Volumen */
@@ -254,71 +293,87 @@
     .volume-control-wrapper {
         display: flex;
         align-items: center;
-        gap: 10px;
-        width: 80%;
-        background: rgba(0, 0, 0, 0.2);
-        padding: 8px 12px;
-        border-radius: 20px;
+        gap: 12px;
+        width: 90%;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px 16px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.2s;
+    }
+
+    .volume-control-wrapper:hover {
+        background: rgba(0, 0, 0, 0.4);
     }
 
     .volume-icon {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         fill: rgba(255, 255, 255, 0.8);
     }
 
     input[type=range] {
         flex-grow: 1;
-        height: 4px;
+        height: 5px;
         -webkit-appearance: none;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+        outline: none;
     }
 
     input[type=range]::-webkit-slider-thumb {
         -webkit-appearance: none;
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         background: white;
         border-radius: 50%;
         cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        transition: transform 0.1s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
     }
 
     /* Error Box */
     .glass-error-message {
-        background: rgba(100, 0, 0, 0.4);
-        border: 1px solid #ff4757;
-        border-radius: 12px;
-        padding: 15px;
+        background: rgba(255, 59, 48, 0.15);
+        border: 1px solid rgba(255, 59, 48, 0.4);
+        border-radius: 16px;
+        padding: 16px;
         margin-top: 15px;
         text-align: center;
         width: 100%;
         box-sizing: border-box;
-        animation: fadeIn 0.3s;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        backdrop-filter: blur(5px);
     }
 
     .retry-btn {
-        background: #ff4757;
+        background: #ff3b30;
         color: white;
         border: none;
-        padding: 10px 15px;
+        padding: 12px 20px;
         border-radius: 30px;
-        font-size: 12px;
-        font-weight: bold;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
         cursor: pointer;
-        margin-top: 5px;
+        margin-top: 8px;
         width: 100%;
-        transition: transform 0.2s;
-        box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+        transition: transform 0.2s, background 0.2s;
+        box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
     }
 
     .retry-btn:hover {
-        transform: scale(1.02);
-        background: #ff6b81;
+        transform: translateY(-1px);
+        background: #ff5e55;
     }
 
-    @keyframes fadeIn {
+    @keyframes slideUp {
         from {
             opacity: 0;
             transform: translateY(10px);
@@ -332,12 +387,12 @@
 
     /* Loading */
     .loading-spinner {
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(255, 255, 255, 0.3);
+        width: 26px;
+        height: 26px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
         border-top-color: white;
         border-radius: 50%;
-        animation: spin 1s linear infinite;
+        animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
@@ -354,7 +409,6 @@
         var status = document.getElementById('wp-radio-status-text');
         var panel = document.getElementById('mainPanel');
         var errorBox = document.getElementById('wp-radio-error-message');
-        var errorMsgText = document.querySelector('.error-msg-text');
         var retryBtn = document.getElementById('retry-action-btn');
         var bars = document.querySelectorAll('.viz-bar');
 
@@ -365,7 +419,7 @@
         var eqInterval;
         var connTimeout;
 
-        // Lock de Play y de Error para evitar flooding (spam de consola)
+        // Locks
         var playLock = false;
         var errorLock = false;
 
@@ -379,18 +433,22 @@
         function setVisualState(state) {
             if (state === 'playing') {
                 panel.classList.add('playing');
-                status.textContent = 'EN VIVO • Sonando';
-                status.style.color = '#2ed573';
+                status.textContent = 'EN VIVO • ON AIR';
+                status.style.color = '#00ff88';
+                status.style.fontWeight = '700';
+                status.style.textShadow = '0 0 10px rgba(0,255,136,0.3)';
                 playBtn.innerHTML = '<svg class="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><div class="glass-btn-pulse"></div>';
                 startEq();
             } else if (state === 'loading') {
-                status.textContent = 'Conectando...';
-                status.style.color = '#ffa502';
+                status.textContent = 'Conectando señal...';
+                status.style.color = '#ffd700';
+                status.style.textShadow = 'none';
                 playBtn.innerHTML = '<div class="loading-spinner"></div>';
             } else {
                 panel.classList.remove('playing');
                 status.textContent = 'Click para Escuchar';
-                status.style.color = 'rgba(255,255,255,0.7)';
+                status.style.color = 'rgba(255,255,255,0.6)';
+                status.style.textShadow = 'none';
                 playBtn.innerHTML = '<svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
                 stopEq();
             }
@@ -398,15 +456,11 @@
 
         function playStream() {
             if (playLock) return;
-            if (isPlaying) {
-                stopStream();
-                return;
-            }
+            if (isPlaying) { stopStream(); return; }
 
             playLock = true;
-            errorLock = false; // Resetear el lock de error para una nueva prueba
+            errorLock = false; // Reset lock de error
 
-            // Reset UI
             errorBox.style.display = 'none';
             setVisualState('loading');
             isLoading = true;
@@ -414,11 +468,10 @@
             var finalUrl = streamBase + '?t=' + Date.now();
             audio.src = finalUrl;
 
-            // Timeout 
             clearTimeout(connTimeout);
             connTimeout = setTimeout(function () {
                 if (isLoading && !isPlaying) {
-                    handleError('Tiempo de espera agotado. Verifica tu conexión.');
+                    handleError();
                 }
             }, 12000);
 
@@ -428,20 +481,9 @@
                 playPromise.then(function () {
                     setTimeout(function () { playLock = false; }, 500);
                 }).catch(function (error) {
-                    // Silenciar logs de consola para evitar spam
                     playLock = false;
-
-                    // Ignorar Abort completamente
                     if (error.name === 'AbortError') return;
-
-                    // Errores reales
-                    if (error.message && error.message.includes('HTTPS')) {
-                        handleError('Navegador bloqueó el audio. Click en el escudo/candado.');
-                    } else if (error.name === 'NotAllowedError') {
-                        handleError('Autoplay bloqueado. Haz click de nuevo.');
-                    } else {
-                        handleError('Error de conexión.');
-                    }
+                    handleError();
                 });
             }
         }
@@ -460,14 +502,12 @@
             setTimeout(function () { playLock = false; }, 500);
         }
 
-        function handleError(msg) {
-            if (errorLock) return; // Ya reportamos un error en este intento
+        function handleError() {
+            if (errorLock) return;
             errorLock = true;
 
-            // Limpieza total
             audio.pause();
-            audio.src = ''; // MATAR la conexión para que el browser deje de reintentar
-
+            audio.src = '';
             isPlaying = false;
             isLoading = false;
             clearTimeout(connTimeout);
@@ -475,10 +515,9 @@
             playLock = false;
 
             errorBox.style.display = 'block';
-            errorMsgText.innerHTML = msg || 'Error de conexión';
             retryBtn.onclick = function () {
                 errorBox.style.display = 'none';
-                playStream(); // Intento limpio nuevo
+                playStream();
             };
         }
 
@@ -486,13 +525,14 @@
             stopEq();
             eqInterval = setInterval(function () {
                 bars.forEach(function (bar) {
-                    bar.style.height = (5 + Math.random() * 20) + 'px';
+                    // Movimiento más orgánico
+                    bar.style.height = (4 + Math.random() * 24) + 'px';
                 });
-            }, 100);
+            }, 80);
         }
         function stopEq() {
             clearInterval(eqInterval);
-            bars.forEach(function (bar) { bar.style.height = '5px'; });
+            bars.forEach(function (bar) { bar.style.height = '6px'; });
         }
 
         playBtn.addEventListener('click', playStream);
@@ -507,12 +547,8 @@
             errorLock = false;
         });
 
-        // ERROR HANDLER SILENCIOSO Y UNICO
         audio.addEventListener('error', function (e) {
-            // No hacer console.log para evitar la foto de spam
-            if (isLoading && !errorLock) {
-                handleError('⚠️ No pudimos conectar. <br>Revisa el 🔒 candado de seguridad.');
-            }
+            if (isLoading && !errorLock) handleError();
         });
 
     })();
