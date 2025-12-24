@@ -4,261 +4,559 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radio Player Embed</title>
+    <title>Radio Player Premium</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Variables de color y estilo */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-shadow: rgba(0, 0, 0, 0.2);
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-color: #667eea;
+            --accent-secondary: #764ba2;
+            --text-primary: rgba(30, 30, 30, 0.95);
+            /* Darker text for white backgrounds if needed, but looks like dark mode design */
+            --text-secondary: rgba(50, 50, 50, 0.7);
+            --text-tertiary: rgba(80, 80, 80, 0.5);
+            --error-color: #ff4757;
+            --success-color: #2ed573;
+            --warning-color: #ffa502;
         }
 
+        /* Adjust colors for transparent background assuming dark or light context, 
+           but glassmorphism usually implies a dark or colorful background. 
+           Since this is an embed, we'll set a default body background so it looks good isolated, 
+           or keep transparent. If the user wants "Luxury", usually implies dark/glass. 
+           Let's use the styles provided but ensure visibility. */
+
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: transparent;
-            /* Transparent for embedding */
+            /* Allow iframe to blend */
             overflow: hidden;
         }
 
-        .player-card {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 25px;
-            border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        /* If body is transparent, text needs to be readable. 
+           The provided CSS uses white text variables, which implies a dark background.
+           We'll add a style to the container to ensure contrast if placed on white wordpress. */
+
+        .wp-radio-widget-luxury {
+            width: 320px;
             max-width: 100%;
-            gap: 20px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin: 0 auto;
+            /* Force dark styling context for the glass effect to pop */
+            background: radial-gradient(circle at top right, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 20px;
+            /* Padding for the container itself */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .play-btn {
-            width: 50px;
-            height: 50px;
+        /* Overwrite specific variable colors for the dark container context */
+        .wp-radio-widget-luxury {
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Widget container inner */
+        .radio-glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            /* Slightly more transparent */
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 18px;
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .radio-glass-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Play button */
+        .glass-btn-play {
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
+            background: var(--accent-gradient);
             border: none;
-            background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
             color: white;
-            font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s;
-            flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            outline: none;
         }
 
-        .play-btn:hover {
+        .glass-btn-play:hover {
             transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
         }
 
-        .play-btn:active {
+        .glass-btn-play:active {
             transform: scale(0.95);
         }
 
-        .info {
-            flex-grow: 1;
-            min-width: 0;
+        .glass-btn-play svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+            position: absolute;
+            transition: opacity 0.3s;
         }
 
-        .title {
+        .pause-icon {
+            opacity: 0;
+        }
+
+        .play-icon {
+            opacity: 1;
+        }
+
+        /* States */
+        .playing .pause-icon {
+            opacity: 1;
+        }
+
+        .playing .play-icon {
+            opacity: 0;
+        }
+
+        /* Pulse animation for playing state */
+        .glass-btn-pulse {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+            opacity: 0;
+            z-index: -1;
+        }
+
+        .playing .glass-btn-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+            }
+
+            70% {
+                transform: scale(1.5);
+                box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+            }
+        }
+
+        /* Info Panel */
+        .glass-info-panel {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 15px;
+            z-index: 1;
+        }
+
+        .glass-station-title {
+            color: var(--text-primary);
+            font-size: 18px;
             font-weight: 700;
-            color: #333;
-            font-size: 16px;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .status {
-            font-size: 12px;
-            color: #666;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            gap: 8px;
         }
 
         .live-dot {
             width: 8px;
             height: 8px;
-            background-color: #ccc;
             border-radius: 50%;
-            display: inline-block;
+            background-color: var(--error-color);
+            /* Red for live */
+            box-shadow: 0 0 5px var(--error-color);
         }
 
-        .live-dot.active {
-            background-color: #4caf50;
-            animation: pulse 2s infinite;
+        .playing .live-dot {
+            animation: blink 2s infinite;
         }
 
-        .live-dot.error {
-            background-color: #f44336;
-        }
+        @keyframes blink {
 
-        @keyframes pulse {
-            0% {
+            0%,
+            100% {
                 opacity: 1;
             }
 
             50% {
-                opacity: 0.4;
-            }
-
-            100% {
-                opacity: 1;
+                opacity: 0.5;
             }
         }
 
-        .volume-container {
+        .glass-status-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            min-height: 20px;
+        }
+
+        .glass-station-info {
+            color: var(--text-tertiary);
+            font-size: 12px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* Equalizer */
+        .glass-equalizer-viz {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 30px;
+            gap: 4px;
+            margin-bottom: 20px;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .viz-bar {
+            width: 6px;
+            height: 6px;
+            background: linear-gradient(to top, var(--accent-color), var(--accent-secondary));
+            border-radius: 3px;
+            transition: height 0.1s ease;
+            opacity: 0.5;
+        }
+
+        .playing .viz-bar {
+            opacity: 1;
+        }
+
+        /* Controls */
+        .glass-controls-panel {
+            width: 100%;
+            z-index: 1;
+        }
+
+        .volume-control-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .volume-icon {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-secondary);
         }
 
         input[type="range"] {
-            width: 80px;
-            height: 4px;
-            background: #eee;
-            border-radius: 2px;
             -webkit-appearance: none;
-            appearance: none;
+            width: 70%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #9c27b0;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
+            background: white;
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 480px) {
-            .player-card {
-                padding: 12px 15px;
-                border-radius: 12px;
+        .connection-info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .connection-info svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        /* Error Message */
+        .glass-error-message {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 71, 87, 0.15);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            border-radius: 10px;
+            color: var(--error-color);
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1;
+        }
+
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+
+        /* Loader */
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
             }
 
-            .volume-container {
-                display: none;
+            100% {
+                transform: rotate(360deg);
             }
-
-            /* Hide volume on small screens */
         }
     </style>
 </head>
 
 <body>
-    <div class="player-card">
-        <button class="play-btn" id="playBtn">
-            <span id="playIcon">▶</span>
-            <span id="pauseIcon" style="display:none;">⏸</span>
-            <span id="loadIcon" style="display:none;">⏳</span>
-        </button>
 
-        <div class="info">
-            <div class="title">Radio En Vivo</div>
-            <div class="status">
-                <span class="live-dot" id="liveDot"></span>
-                <span id="statusText">Offline</span>
+    <div class="wp-radio-widget-luxury">
+        <div class="radio-glass-panel" id="mainPanel">
+            <button id="wp-radio-play-btn" class="glass-btn-play">
+                <svg class="play-icon" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+                <svg class="pause-icon" viewBox="0 0 24 24">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                </svg>
+                <div class="glass-btn-pulse"></div>
+                <!-- Loader injected via JS when loading -->
+            </button>
+
+            <div class="glass-info-panel">
+                <div class="glass-station-title">
+                    <div class="live-dot"></div>
+                    RADIO EN VIVO
+                </div>
+                <div id="wp-radio-status-text" class="glass-status-text">Listo para conectar</div>
+                <div class="glass-station-info">
+                    <svg class="wave-icon" viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;">
+                        <path
+                            d="M20 12c-1.5 0-2.5.5-3 1.5l-3 4.5c-.5 1-1.5 1.5-2.5 1.5s-2-.5-2.5-1.5L6 13.5C5.5 12.5 4.5 12 3 12" />
+                    </svg>
+                    <span>FM 103.5 • 128 kbps</span>
+                </div>
+            </div>
+
+            <div class="glass-equalizer-viz">
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+            </div>
+
+            <div class="glass-controls-panel">
+                <div class="volume-control-wrapper">
+                    <svg class="volume-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                    </svg>
+                    <input type="range" id="wp-radio-volume-control" min="0" max="1" step="0.01" value="0.8">
+                </div>
+
+                <div class="connection-info">
+                    <svg class="signal-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l10.08 12.56c.8 1 2.32 1 3.12 0L23.64 7z" />
+                    </svg>
+                    <span id="wp-radio-bitrate">--- kbps</span>
+                </div>
+            </div>
+
+            <div id="wp-radio-error-message" class="glass-error-message">
+                <svg class="error-icon" viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+                <div class="error-text">Error</div>
+                <button id="wp-radio-retry-btn" class="retry-btn">Reintentar</button>
             </div>
         </div>
 
-        <div class="volume-container">
-            <span>🔊</span>
-            <input type="range" min="0" max="100" value="80" id="volSlider">
-        </div>
+        <audio id="wp-radio-player" preload="auto" crossorigin="anonymous"></audio>
     </div>
 
-    <audio id="audio" preload="auto"></audio>
-
     <script>
-        const audio = document.getElementById('audio');
-        const playBtn = document.getElementById('playBtn');
-        const statusText = document.getElementById('statusText');
-        const liveDot = document.getElementById('liveDot');
+        // Elements
+        const audio = document.getElementById('wp-radio-player');
+        const playBtn = document.getElementById('wp-radio-play-btn');
+        const panel = document.getElementById('mainPanel');
+        const statusText = document.getElementById('wp-radio-status-text');
+        const volumeSlider = document.getElementById('wp-radio-volume-control');
+        const errorBox = document.getElementById('wp-radio-error-message');
+        const retryBtn = document.getElementById('wp-radio-retry-btn');
+        const bars = document.querySelectorAll('.viz-bar');
+        const bitrateText = document.getElementById('wp-radio-bitrate');
 
-        // Configuration
-        const STREAMS = ['/radio.aac', '/stream.aac', 'http://72.62.86.94/radio.aac']; // Fallbacks
+        const STREAMS = [
+            'http://72.62.86.94/radio.aac',
+            '/radio.aac',
+            'http://72.62.86.94:8000/radio.aac'
+        ];
         let currentStreamIdx = 0;
         let isPlaying = false;
-        let retryCount = 0;
+        let eqInterval;
 
-        // Init Volume
         audio.volume = 0.8;
-        document.getElementById('volSlider').addEventListener('input', (e) => audio.volume = e.target.value / 100);
 
-        function setState(state) {
-            document.getElementById('playIcon').style.display = state === 'idle' ? 'block' : 'none';
-            document.getElementById('pauseIcon').style.display = state === 'playing' ? 'block' : 'none';
-            document.getElementById('loadIcon').style.display = state === 'loading' ? 'block' : 'none';
-
+        function setStatus(state) {
             if (state === 'playing') {
-                liveDot.className = 'live-dot active';
-                statusText.textContent = 'En Vivo • ON AIR';
+                panel.classList.add('playing');
+                statusText.textContent = "Transmisión en Vivo";
+                statusText.style.color = "var(--success-color)";
+                startEq();
+                playBtn.innerHTML = `<svg class="pause-icon" viewBox="0 0 24 24" style="opacity:1"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><div class="glass-btn-pulse"></div>`;
             } else if (state === 'loading') {
-                liveDot.className = 'live-dot';
-                statusText.textContent = 'Conectando...';
+                statusText.textContent = "Conectando...";
+                statusText.style.color = "var(--warning-color)";
+                playBtn.innerHTML = `<div class="loading-spinner"></div>`;
             } else if (state === 'error') {
-                liveDot.className = 'live-dot error';
-                statusText.textContent = 'Reconectando...';
-            } else {
-                liveDot.className = 'live-dot';
-                statusText.textContent = 'Click para escuchar';
+                panel.classList.remove('playing');
+                statusText.textContent = "Desconectado";
+                stopEq();
+                playBtn.innerHTML = `<svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+            } else { // idle
+                panel.classList.remove('playing');
+                statusText.textContent = "Listo para conectar";
+                statusText.style.color = "var(--text-secondary)";
+                stopEq();
+                playBtn.innerHTML = `<svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
             }
         }
 
-        async function play() {
+        function startEq() {
+            stopEq();
+            eqInterval = setInterval(() => {
+                bars.forEach(bar => {
+                    bar.style.height = (5 + Math.random() * 25) + 'px';
+                });
+                bitrateText.textContent = "128 kbps";
+            }, 100);
+        }
+
+        function stopEq() {
+            clearInterval(eqInterval);
+            bars.forEach(bar => bar.style.height = '6px');
+            bitrateText.textContent = "--- kbps";
+        }
+
+        function showError(msg) {
+            errorBox.style.display = 'flex';
+            errorBox.querySelector('.error-text').textContent = msg;
+            setStatus('error');
+        }
+
+        function hideError() {
+            errorBox.style.display = 'none';
+        }
+
+        async function togglePlay() {
             if (isPlaying) {
                 audio.pause();
+                audio.src = ""; // Stop buffer
                 isPlaying = false;
-                setState('idle');
-                audio.src = ''; // Stop buffering
-                return;
-            }
-
-            setState('loading');
-            audio.src = STREAMS[currentStreamIdx];
-
-            try {
-                await audio.play();
-                isPlaying = true;
-                retryCount = 0;
-                setState('playing');
-            } catch (err) {
-                console.error("Play error:", err);
-                handleError();
-            }
-        }
-
-        function handleError() {
-            setState('error');
-            isPlaying = false;
-
-            // Try next stream or retry same
-            setTimeout(() => {
-                if (retryCount < 10) {
-                    retryCount++;
-                    // Rotate stream url
+                setStatus('idle');
+            } else {
+                hideError();
+                setStatus('loading');
+                audio.src = STREAMS[currentStreamIdx];
+                try {
+                    await audio.play();
+                    isPlaying = true;
+                    setStatus('playing');
+                } catch (e) {
+                    console.error(e);
+                    showError("Error de conexión");
+                    // Try next stream
                     currentStreamIdx = (currentStreamIdx + 1) % STREAMS.length;
-                    play(); // Auto retry
-                } else {
-                    statusText.textContent = "Offline (Verifica fuente)";
-                    setState('idle');
-                    retryCount = 0;
                 }
-            }, 3000);
+            }
         }
 
-        playBtn.addEventListener('click', play);
+        playBtn.addEventListener('click', togglePlay);
+        retryBtn.addEventListener('click', togglePlay);
 
-        audio.addEventListener('playing', () => setState('playing'));
-        audio.addEventListener('error', handleError);
+        volumeSlider.addEventListener('input', (e) => {
+            audio.volume = e.target.value;
+        });
 
-        // Initial state
-        setState('idle');
+        audio.addEventListener('error', () => {
+            if (isPlaying) {
+                showError("Se perdió la señal");
+                isPlaying = false;
+            }
+        });
+
+        audio.addEventListener('playing', () => {
+            isPlaying = true; // Confirm play
+            setStatus('playing');
+        });
+
     </script>
 </body>
 
