@@ -1,3 +1,4 @@
+# Docker Compose using relative paths for portable deployment
 services:
   icecast:
     image: moul/icecast
