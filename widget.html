@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +25,7 @@
             background: linear-gradient(145deg, #222, #1a1a1a);
             padding: 15px 25px;
             border-radius: 50px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
             width: 90%;
             max-width: 400px;
         }
@@ -53,7 +54,8 @@
             fill: white;
             width: 20px;
             height: 20px;
-            margin-left: 3px; /* visual storage adjustment */
+            margin-left: 3px;
+            /* visual storage adjustment */
         }
 
         .info {
@@ -86,9 +88,17 @@
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         /* Equalizer Animation (simplified) */
@@ -106,22 +116,38 @@
             animation: bounce 1s infinite;
         }
 
-        .bar:nth-child(2) { animation-duration: 1.2s; }
-        .bar:nth-child(3) { animation-duration: 0.8s; }
+        .bar:nth-child(2) {
+            animation-duration: 1.2s;
+        }
+
+        .bar:nth-child(3) {
+            animation-duration: 0.8s;
+        }
 
         @keyframes bounce {
-            0%, 100% { height: 5px; }
-            50% { height: 18px; }
+
+            0%,
+            100% {
+                height: 5px;
+            }
+
+            50% {
+                height: 18px;
+            }
         }
-        
     </style>
 </head>
+
 <body>
 
     <div class="player-container">
         <button class="play-btn" id="playBtn">
-            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none; margin-left:0;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <svg id="playIcon" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+            </svg>
+            <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none; margin-left:0;">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
         </button>
         <div class="info">
             <h2>Radio En Vivo</h2>
@@ -135,10 +161,8 @@
     </div>
 
     <!-- Audio Element -->
-    <audio id="audioStream" preload="none">
+    <audio id="audioStream" preload="none" crossorigin="anonymous">
         <source src="/stream.aac" type="audio/aac">
-        <source src="/stream.mp3" type="audio/mpeg">
-        <source src="/stream" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
@@ -158,23 +182,41 @@
                 pauseIcon.style.display = 'none';
                 equalizer.style.opacity = '0';
             } else {
-                // Cache bust to ensure live edge
-                const src = audio.querySelector('source').getAttribute('src');
-                audio.src = src; 
+                // Force reload the stream to get the latest
                 audio.load();
-                audio.play();
 
-                playIcon.style.display = 'none';
-                pauseIcon.style.display = 'block';
-                equalizer.style.opacity = '1';
+                audio.play().then(() => {
+                    console.log('Stream playing successfully');
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                    equalizer.style.opacity = '1';
+                }).catch((error) => {
+                    console.error('Error playing stream:', error);
+                    alert('No se pudo reproducir el stream. Verifica que Opticodec esté transmitiendo.');
+                });
             }
             isPlaying = !isPlaying;
         });
 
         audio.addEventListener('error', (e) => {
-            console.error('Error playing stream', e);
-            // Auto-reconnect logic could go here
+            console.error('Stream error:', e);
+            console.error('Error code:', audio.error ? audio.error.code : 'unknown');
+            console.error('Error message:', audio.error ? audio.error.message : 'unknown');
+
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+            equalizer.style.opacity = '0';
+            isPlaying = false;
+        });
+
+        audio.addEventListener('loadstart', () => {
+            console.log('Loading stream...');
+        });
+
+        audio.addEventListener('canplay', () => {
+            console.log('Stream ready to play');
         });
     </script>
 </body>
+
 </html>
