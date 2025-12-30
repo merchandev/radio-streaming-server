@@ -19,8 +19,15 @@ echo "Ensure no other service is using Port 80 on this VPS."
 # Stop any existing containers using the compose command found
 $COMPOSE_CMD stop nginx
 
-# Kill any process using port 80 (Safety measure for Hostinger Apache/Nginx default)
-fuser -k 80/tcp || true
+# Force kill any process using port 80 (Apache/Nginx system services)
+echo "Cleaning Port 80..."
+fuser -k -9 80/tcp || true
+systemctl stop nginx 2>/dev/null || true
+systemctl stop apache2 2>/dev/null || true
+docker rm -f certbot-temp 2>/dev/null || true
+
+# Wait for ports to clear
+sleep 5
 
 # Run Standalone Certbot
 # Maps Host:80 -> Container:80 directly
