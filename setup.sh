@@ -70,6 +70,7 @@ docker-compose up -d
 
 echo -e "${GREEN}=== Deployment Complete ===${NC}"
 echo -e "Stream URL (Icecast): http://$DOMAIN:8000/stream"
-echo -e "Web Player: https://$DOMAIN"
+echo -e "Web Player (HTTP): http://$DOMAIN:8081"
+echo -e "Web Player (HTTPS): https://$DOMAIN:8443 (Self-signed/Invalid unless proxy is used)"
 echo -e "Admin Panel: http://$DOMAIN:8000/admin/"
 echo -e "Source Password (Opticodec): mistream"
