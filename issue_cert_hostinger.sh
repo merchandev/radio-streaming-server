@@ -6,11 +6,21 @@
 DOMAIN="streaming.monagasvision.com"
 EMAIL="admin@monagasvision.com" # Change if needed
 
+# Check for docker compose v2 or v1
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    COMPOSE_CMD="docker compose"
+fi
+
 echo "=== Requesting SSL Certificate for $DOMAIN ==="
 echo "Ensure no other service is using Port 80 on this VPS."
 
-# Stop Nginx to ensure no conflicts (though it is on 8081, best to be safe/clean)
-# docker-compose stop nginx
+# Stop any existing containers using the compose command found
+$COMPOSE_CMD stop nginx
+
+# Kill any process using port 80 (Safety measure for Hostinger Apache/Nginx default)
+fuser -k 80/tcp || true
 
 # Run Standalone Certbot
 # Maps Host:80 -> Container:80 directly
@@ -26,7 +36,7 @@ docker run -it --rm --name certbot-temp \
 if [ $? -eq 0 ]; then
     echo "SUCCESS: Certificate obtained."
     echo "Restarting Nginx to apply SSL..."
-    docker-compose restart nginx
+    $COMPOSE_CMD up -d nginx
 else
     echo "FAILURE: Could not obtain certificate."
     echo "Please check if Port 80 is open and accessible from the internet."
