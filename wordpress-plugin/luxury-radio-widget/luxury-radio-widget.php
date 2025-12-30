@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Luxury Radio Glass Widget
-Description: Widget de Radio Premium con diseño Luxury Glass (V8 - SSL Native). Usa el shortcode [luxury_radio] para mostrarlo.
-Version: 8.0
+Description: Widget de Radio Premium con diseño Luxury Glass (V9 - Streaming Hostinger). Usa el shortcode [luxury_radio] para mostrarlo.
+Version: 9.0
 Author: Antigravity
 */
 
@@ -16,7 +16,7 @@ function luxury_radio_shortcode() {
     
     ob_start();
     ?>
-    <!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V7 - ULTRA) -->
+    <!-- 💎 WIDGET DE RADIO PREMIUM LUXURY GLASS (V9 - STREAMING) -->
     <div id="<?php echo esc_attr($widget_id); ?>" class="wp-radio-widget-luxury">
         <!-- Fondo Animado -->
         <div class="luxury-bg-anim"></div>
@@ -164,6 +164,7 @@ function luxury_radio_shortcode() {
         }
         .playing .pause-icon {
             opacity: 1;
+            transition: 0.3s;
         }
         .playing .play-icon {
             opacity: 0;
@@ -391,7 +392,7 @@ function luxury_radio_shortcode() {
             }
 
             // Configuración
-            var streamBase = 'https://tv.monagasvision.com/radio.aac';
+            var streamBase = 'https://streaming.monagasvision.com:8443/radio.aac';
             var isPlaying = false;
             var isLoading = false;
             var eqInterval;
