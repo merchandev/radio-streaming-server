@@ -1,0 +1,9 @@
+# Secrets - nunca subir a git
+.env
+
+# Carpeta de certificados generados
+certbot/
+acme/
+
+# Logs
+*.log
