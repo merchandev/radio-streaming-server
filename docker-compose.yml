@@ -11,8 +11,8 @@ services:
       context: .
       dockerfile: Dockerfile.icecast
     restart: always
-    # 8000:8000 → ELIMINADO — Icecast no debe estar expuesto sin SSL
-    # Nginx hace proxy interno hacia Icecast en :8000
+    ports:
+      - "8000:8000" # REQUIRED for the encoder (Opticodec) to push the audio stream
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/status.xsl"]
       interval: 30s
