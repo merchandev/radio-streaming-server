@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+
+  # ----------------------------------------------------------
+  # Icecast — Servidor de audio
+  # No expuesto al exterior — solo accesible internamente
+  # ----------------------------------------------------------
+  icecast:
+    build:
+      context: .
+      dockerfile: Dockerfile.icecast
+    restart: always
+    # 8000:8000 → ELIMINADO — Icecast no debe estar expuesto sin SSL
+    # Nginx hace proxy interno hacia Icecast en :8000
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/status.xsl"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - internal-radio
+
+  # ----------------------------------------------------------
+  # Nginx — Proxy interno hacia Icecast + player web
+  # Traefik enruta el tráfico de sonora.monagasvision.com aquí
+  # ----------------------------------------------------------
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    restart: always
+    # 8081:80  → ELIMINADO (Traefik lo gestiona)
+    # 8443:443 → ELIMINADO (Traefik lo gestiona)
+    depends_on:
+      - icecast
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      # --- Habilitar Traefik ---
+      - "traefik.enable=true"
+
+      # --- Router HTTPS ---
+      - "traefik.http.routers.sonora.rule=Host(`sonora.monagasvision.com`)"
+      - "traefik.http.routers.sonora.entrypoints=websecure"
+      - "traefik.http.routers.sonora.tls=true"
+      - "traefik.http.routers.sonora.tls.certresolver=letsencrypt"
+
+      # --- Puerto interno de nginx ---
+      - "traefik.http.services.sonora.loadbalancer.server.port=80"
+
+      # --- Router HTTP → redirige a HTTPS ---
+      - "traefik.http.routers.sonora-http.rule=Host(`sonora.monagasvision.com`)"
+      - "traefik.http.routers.sonora-http.entrypoints=web"
+      - "traefik.http.routers.sonora-http.middlewares=redirect-to-https@docker"
+    networks:
+      - internal-radio
+      - traefik-net
+
+  # acme → ELIMINADO COMPLETAMENTE
+  # Traefik gestiona Let's Encrypt automáticamente.
+  # No se necesita neilpang/acme.sh ni ningún servicio externo de certs.
+
+networks:
+  internal-radio:
+    # Red interna: solo Icecast y Nginx se ven entre sí
+  traefik-net:
+    external: true
