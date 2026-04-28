@@ -68,4 +68,4 @@ networks:
   internal-radio:
     # Red interna: solo Icecast y Nginx se ven entre sí
   traefik-net:
-    external: true
+    name: traefik-net
