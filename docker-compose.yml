@@ -42,6 +42,7 @@ services:
     labels:
       # --- Habilitar Traefik ---
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik-net"
 
       # --- Router HTTPS ---
       - "traefik.http.routers.sonora.rule=Host(`sonora.monagasvision.com`)"
