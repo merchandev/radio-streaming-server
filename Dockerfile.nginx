@@ -1,8 +1,7 @@
 FROM nginx:alpine
 
 COPY config/nginx.conf /etc/nginx/nginx.conf
-COPY widget.html /usr/share/nginx/html/widget.html
-COPY embed.html /usr/share/nginx/html/embed.html
+COPY index.html /usr/share/nginx/html/index.html
 
 EXPOSE 80
 
