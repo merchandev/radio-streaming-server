@@ -392,7 +392,7 @@ function luxury_radio_shortcode() {
             }
 
             // Configuración
-            var streamBase = 'https://streaming.monagasvision.com:8443/radio.aac';
+            var streamBase = 'https://sonora.monagasvision.com/radio.aac';
             var isPlaying = false;
             var isLoading = false;
             var eqInterval;
