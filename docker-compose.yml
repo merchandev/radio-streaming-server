@@ -51,7 +51,7 @@ services:
       # --- Router HTTP → redirige a HTTPS ---
       - "traefik.http.routers.sonora-http.rule=Host(`sonora.monagasvision.com`)"
       - "traefik.http.routers.sonora-http.entrypoints=web"
-      - "traefik.http.routers.sonora-http.middlewares=redirect-to-https@docker"
+      - "traefik.http.routers.sonora-http.entrypoints=web"
     networks:
       - internal-radio
       - traefik-net
