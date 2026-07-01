@@ -17,7 +17,7 @@ La plataforma ha sido completamente actualizada con puertos y credenciales mejor
 | **Puerto** | `8080` ⚠️ **CAMBIADO** |
 | **Mount Point / Filename** | `radio.aac` ⚠️ **CAMBIADO** |
 | **Usuario** | `source` |
-| **Contraseña** | `radiostream2024` ⚠️ **CAMBIADO** |
+| **Contraseña** | `mistream` ⚠️ **CAMBIADO** |
 
 ### Configuración del Encoder (Recomendada)
 
@@ -63,7 +63,7 @@ Port: 8080
 
 Filename: radio.aac
 User: source
-Password: radiostream2024
+Password: mistream
 ```
 
 ### 5. Conectar
@@ -156,7 +156,7 @@ Formato: AAC-HE
 - [ ] Servidor: `72.62.86.94`
 - [ ] Puerto: `8080` (NO 8000)
 - [ ] Filename: `radio.aac` (sin barra /)
-- [ ] Contraseña: `radiostream2024`
+- [ ] Contraseña: `mistream`
 - [ ] Que tu PC tenga acceso a internet
 
 ### Conecta pero no se escucha
@@ -224,7 +224,7 @@ Destination Server:
   Port: 8080
   Filename: radio.aac
   User: source
-  Password: radiostream2024
+  Password: mistream
 ```
 
 ---
@@ -233,7 +233,7 @@ Destination Server:
 
 ### Icecast Source (Para transmitir)
 - Usuario: `source`
-- Contraseña: `radiostream2024`
+- Contraseña: `mistream`
 
 ### Icecast Admin (Panel de control)
 - Usuario: `admin`

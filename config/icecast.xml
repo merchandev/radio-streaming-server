@@ -15,7 +15,7 @@
     </limits>
 
     <authentication>
-        <source-password>radiostream2024</source-password>
+        <source-password>mistream</source-password>
         <relay-password>relay2024secure</relay-password>
         <admin-user>admin</admin-user>
         <admin-password>admin2024secure</admin-password>

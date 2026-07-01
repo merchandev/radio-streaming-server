@@ -26,7 +26,7 @@ Se ha completado la reconstrucción total de la plataforma de radio streaming co
 - ✅ Capacidad: **5000 oyentes simultáneos**
 - ✅ Buffer: 128KB (burst optimizado)
 - ✅ CORS headers en Icecast nativo
-- ✅ Nueva contraseña: `radiostream2024`
+- ✅ Nueva contraseña: `mistream`
 - ✅ Contraseña admin: `admin2024secure`
 
 ### 3. Nginx Enterprise-Grade
@@ -67,7 +67,7 @@ Se ha completado la reconstrucción total de la plataforma de radio streaming co
 ### Icecast Source (Para Opticodec)
 ```
 Usuario: source
-Contraseña: radiostream2024
+Contraseña: mistream
 ```
 
 ### Icecast Admin
@@ -93,7 +93,7 @@ URL: 72.62.86.94
 Port: 8080          ← NUEVO (era 8000)
 Filename: radio.aac ← NUEVO (era stream.aac)
 User: source
-Password: radiostream2024  ← NUEVO (era mistream)
+Password: mistream  ← NUEVO (era mistream)
 ```
 
 ---
@@ -133,7 +133,7 @@ Prueba estas URLs en tu navegador:
 2. Actualiza:
    - Port: `8080`
    - Filename: `radio.aac`
-   - Password: `radiostream2024`
+   - Password: `mistream`
 3. Click en Connect
 4. Deberías ver "Connected"
 
@@ -247,7 +247,7 @@ Verás:
 Verifica:
 - [ ] Puerto: 8080 (NO 8000)
 - [ ] Filename: radio.aac (sin `/`)
-- [ ] Password: radiostream2024
+- [ ] Password: mistream
 - [ ] Que icecast esté healthy
 
 ---
