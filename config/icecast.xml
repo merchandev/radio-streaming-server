@@ -27,6 +27,8 @@
     <listen-socket>
         <port>8000</port>
     </listen-socket>
+    
+    <shoutcast-mount>/radio.aac</shoutcast-mount>
 
     <fileserve>1</fileserve>
 
